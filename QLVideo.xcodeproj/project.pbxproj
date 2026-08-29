@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		46DEAD00304366BF00847B36 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 46DEACFF304366BF00847B36 /* AppIcon.icon */; };
 		AB004A142F2259900054D7B0 /* QLVideo Codecs.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = AB0049862F2143CE0054D7B0 /* QLVideo Codecs.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		AB09EA0A2F7B272000E23C51 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AB09EA092F7B272000E23C51 /* Localizable.xcstrings */; };
 		AB34A76F2ECA3DBA0020E022 /* libdav1d.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ABA141EA2D2EF8CA0040A4E6 /* libdav1d.a */; };
@@ -14,7 +15,6 @@
 		AB3AD4E22FEEBF380016453D /* MediaExtensionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB3AD4E12FEEBF2B0016453D /* MediaExtensionsView.swift */; };
 		AB49FBA22923B5DD00B126C0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB49FB952923B5BB00B126C0 /* AppDelegate.swift */; };
 		AB49FBB92923CF1C00B126C0 /* QLVideo Metadata.mdimporter in Embed mdimporter */ = {isa = PBXBuildFile; fileRef = AB9FB56D1965DD7200D39647 /* QLVideo Metadata.mdimporter */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		AB4C18B130053D9C008E9B46 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ABDA3D793005264100FAD1D9 /* Assets.xcassets */; };
 		AB70C90D2EF1C10500E30DCE /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB2ACD9D1A696F72002411DF /* AVFoundation.framework */; };
 		AB70C90F2EF1C14D00E30DCE /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB70C90E2EF1C14D00E30DCE /* AVKit.framework */; };
 		AB7C714119F8A5C50006104E /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AB7C714019F8A5C50006104E /* libbz2.dylib */; };
@@ -66,6 +66,10 @@
 		ABE72EB22937FAE4005433DF /* Main.xib in Resources */ = {isa = PBXBuildFile; fileRef = ABE72EB42937FAE4005433DF /* Main.xib */; };
 		ABE72EB82938E008005433DF /* IssueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABE72EB72938E008005433DF /* IssueView.swift */; };
 		ABE72EC1293A32F2005433DF /* ffprobe in Embed Executables */ = {isa = PBXBuildFile; fileRef = ABE72EBC29392EEB005433DF /* ffprobe */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		D351A9AD3ED04D02AD369FD9 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 46DEACFF304366BF00847B36 /* AppIcon.icon */; };
+		78CDC72F265C418A95DF4370 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 46DEACFF304366BF00847B36 /* AppIcon.icon */; };
+		01AE074BBD1D432D851AC57B /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 46DEACFF304366BF00847B36 /* AppIcon.icon */; };
+		9E31C0E203DA4347AC75F198 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 46DEACFF304366BF00847B36 /* AppIcon.icon */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -191,6 +195,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		46DEACFF304366BF00847B36 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		AB0049862F2143CE0054D7B0 /* QLVideo Codecs.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = "QLVideo Codecs.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB006A562F2978B20014937F /* libzimg.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libzimg.2.dylib; sourceTree = "<group>"; };
 		AB00C5C81A682EF800D71399 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/schema.strings; sourceTree = "<group>"; };
@@ -265,7 +270,6 @@
 		ABCDC9022F6372DE001DE092 /* buildschema */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = buildschema; sourceTree = "<group>"; };
 		ABCDC9042F6372DE001DE092 /* buildzimg */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = buildzimg; sourceTree = "<group>"; };
 		ABD12FB42F5895BA00F69ECA /* app-bridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "app-bridge.h"; sourceTree = "<group>"; };
-		ABDA3D793005264100FAD1D9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		ABE05B671A29FED900E228EE /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/schema.strings; sourceTree = "<group>"; };
 		ABE23BD11D258F6C004E9D26 /* VideoToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = VideoToolbox.framework; path = System/Library/Frameworks/VideoToolbox.framework; sourceTree = SDKROOT; };
 		ABE23BD61D25914C004E9D26 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
@@ -422,6 +426,7 @@
 		AB9FB5641965DD7200D39647 = {
 			isa = PBXGroup;
 			children = (
+				46DEACFF304366BF00847B36 /* AppIcon.icon */,
 				AB17AF8E3003AB20003767DB /* README.md */,
 				AB17AF8F3003AB31003767DB /* BUILDING.md */,
 				AB49FB70292276A000B126C0 /* app */,
@@ -481,7 +486,6 @@
 		AB9FB5781965DD7200D39647 /* mdimporter */ = {
 			isa = PBXGroup;
 			children = (
-				ABDA3D793005264100FAD1D9 /* Assets.xcassets */,
 				AB1DAC6D2F4D201C006BB899 /* mdimporter-bridge.h */,
 				AB9FB57E1965DD7200D39647 /* main.c */,
 				AB9FB5801965DD7200D39647 /* GetMetadataForFile.swift */,
@@ -765,6 +769,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01AE074BBD1D432D851AC57B /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -776,6 +781,7 @@
 				ABE72EB22937FAE4005433DF /* Main.xib in Resources */,
 				AB3AD4E02FEEADDC0016453D /* test-vp8-vorbis-webvtt.webm in Resources */,
 				AB09EA0A2F7B272000E23C51 /* Localizable.xcstrings in Resources */,
+				46DEAD00304366BF00847B36 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -783,6 +789,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9E31C0E203DA4347AC75F198 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -790,6 +797,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				78CDC72F265C418A95DF4370 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -797,7 +805,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AB4C18B130053D9C008E9B46 /* Assets.xcassets in Resources */,
+				D351A9AD3ED04D02AD369FD9 /* AppIcon.icon in Resources */,
 				ABE461181A15A776006C89A2 /* schema.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
