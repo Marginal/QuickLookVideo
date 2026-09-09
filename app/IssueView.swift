@@ -154,13 +154,13 @@ class IssueDropTarget: NSImageView {
                     DispatchQueue.main.async {
                         if let error {
                             self.parent.thumbnailStatus = String(describing: error)
-                            self.image = NSImage(named: "Document")
+                            self.image = NSWorkspace.shared.icon(forFile: url.path)
                         } else if let image = thumbnail?.nsImage {
                             self.parent.thumbnailStatus = "Yes"
                             self.image = image
                         } else {
                             self.parent.thumbnailStatus = "No"
-                            self.image = NSImage(named: "Document")
+                            self.image = NSWorkspace.shared.icon(forFile: url.path)
                         }
                     }
                 }
