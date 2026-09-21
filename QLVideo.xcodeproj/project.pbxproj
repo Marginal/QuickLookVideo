@@ -10,6 +10,15 @@
 		AB004A142F2259900054D7B0 /* QLVideo Codecs.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = AB0049862F2143CE0054D7B0 /* QLVideo Codecs.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		AB09EA0A2F7B272000E23C51 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AB09EA092F7B272000E23C51 /* Localizable.xcstrings */; };
 		AB34A76F2ECA3DBA0020E022 /* libdav1d.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ABA141EA2D2EF8CA0040A4E6 /* libdav1d.a */; };
+		AB35B6A6305D49E700A8BDF0 /* libavformat.63.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ABACB7CA3037463B00D96E8B /* libavformat.63.dylib */; };
+		AB35B6A7305D49ED00A8BDF0 /* libavcodec.63.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ABACB7C83037463B00D96E8B /* libavcodec.63.dylib */; };
+		AB35B6A8305D49F100A8BDF0 /* libavutil.61.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ABACB7CB3037463B00D96E8B /* libavutil.61.dylib */; };
+		AB35B6A9305D49F500A8BDF0 /* libswscale.10.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ABACB7CD3037463B00D96E8B /* libswscale.10.dylib */; };
+		AB35B6AA305D8F7200A8BDF0 /* snapshotter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5CF11A304723C900DA6A16 /* snapshotter.swift */; };
+		AB35B6AB305D903100A8BDF0 /* cmtime.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5CF114304723C900DA6A16 /* cmtime.swift */; };
+		AB35B6AF305EC7B400A8BDF0 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = AB35B6AE305EC7B400A8BDF0 /* AppIcon.icon */; };
+		AB35B6B130600D5100A8BDF0 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB35B6B030600D5100A8BDF0 /* main.swift */; };
+		AB35B6B430603D9600A8BDF0 /* callbacks.m in Sources */ = {isa = PBXBuildFile; fileRef = AB35B6B330603D9600A8BDF0 /* callbacks.m */; };
 		AB3AD4E02FEEADDC0016453D /* test-vp8-vorbis-webvtt.webm in Resources */ = {isa = PBXBuildFile; fileRef = AB3AD4DF2FEEADDC0016453D /* test-vp8-vorbis-webvtt.webm */; };
 		AB3AD4E22FEEBF380016453D /* MediaExtensionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB3AD4E12FEEBF2B0016453D /* MediaExtensionsView.swift */; };
 		AB49FBA22923B5DD00B126C0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB49FB952923B5BB00B126C0 /* AppDelegate.swift */; };
@@ -24,7 +33,7 @@
 		AB5CF12B304723C900DA6A16 /* callbacks.m in Sources */ = {isa = PBXBuildFile; fileRef = AB5CF113304723C900DA6A16 /* callbacks.m */; };
 		AB5CF12C304723C900DA6A16 /* cmtime.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5CF114304723C900DA6A16 /* cmtime.swift */; };
 		AB5CF12D304723C900DA6A16 /* formatreader.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5CF117304723C900DA6A16 /* formatreader.swift */; };
-		AB5CF12E304723C900DA6A16 /* formatreader-snapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5CF11A304723C900DA6A16 /* formatreader-snapshot.swift */; };
+		AB5CF12E304723C900DA6A16 /* snapshotter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5CF11A304723C900DA6A16 /* snapshotter.swift */; };
 		AB5CF12F304723C900DA6A16 /* formatreaderfactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5CF11B304723C900DA6A16 /* formatreaderfactory.swift */; };
 		AB5CF130304723C900DA6A16 /* packetdemuxer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5CF11D304723C900DA6A16 /* packetdemuxer.swift */; };
 		AB5CF131304723C900DA6A16 /* samplecursor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5CF11E304723C900DA6A16 /* samplecursor.swift */; };
@@ -45,8 +54,12 @@
 		AB5CF152304723D000DA6A16 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = AB5CF138304723D000DA6A16 /* AppIcon.icon */; };
 		AB5CF165304723DD00DA6A16 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = AB5CF161304723DD00DA6A16 /* AppIcon.icon */; };
 		AB5CF166304723DD00DA6A16 /* simpleplayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5CF163304723DD00DA6A16 /* simpleplayer.swift */; };
+		AB62FDBB305445A1003B2263 /* ServicesMenu.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AB62FDBA305445A0003B2263 /* ServicesMenu.xcstrings */; };
 		AB70C90D2EF1C10500E30DCE /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB2ACD9D1A696F72002411DF /* AVFoundation.framework */; };
 		AB70C90F2EF1C14D00E30DCE /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB70C90E2EF1C14D00E30DCE /* AVKit.framework */; };
+		AB747A9030580D9800B30276 /* QLVideo Contact Sheet.app in Embed Service Helper */ = {isa = PBXBuildFile; fileRef = AB8557FB304756EF00B918F5 /* QLVideo Contact Sheet.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AB747A913058228800B30276 /* averror.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5CF110304723C900DA6A16 /* averror.swift */; };
+		AB747A93305848F400B30276 /* contactsheetview.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB747A92305848EA00B30276 /* contactsheetview.swift */; };
 		AB7C714119F8A5C50006104E /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AB7C714019F8A5C50006104E /* libbz2.dylib */; };
 		AB7C714719F8A6730006104E /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AB7C714619F8A6730006104E /* libz.dylib */; };
 		AB7C714919F8A6970006104E /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AB7C714819F8A6970006104E /* libiconv.dylib */; };
@@ -90,6 +103,7 @@
 		ABACC039303F302C00D96E8B /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = ABACC038303F302C00D96E8B /* AppIcon.icon */; };
 		ABBA11CC3040605F00967EFC /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = ABBA11CB3040605F00967EFC /* AppIcon.icon */; };
 		ABBC10E01C1DF64E00B25E28 /* liblzma.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ABBC10DE1C1DF5F600B25E28 /* liblzma.5.dylib */; };
+		ABD908C7304788E2004A75CA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABD908C6304788DC004A75CA /* AppDelegate.swift */; };
 		ABE23BD41D25903D004E9D26 /* VideoToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABE23BD11D258F6C004E9D26 /* VideoToolbox.framework */; };
 		ABE23BD71D25914C004E9D26 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABE23BD61D25914C004E9D26 /* AudioToolbox.framework */; };
 		ABE23BDA1D2591F8004E9D26 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABE23BD91D2591F8004E9D26 /* CoreMedia.framework */; };
@@ -196,6 +210,17 @@
 			name = "Embed ExtensionKit Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AB85580F304773A100B918F5 /* Embed Service Helper */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Helpers;
+			dstSubfolderSpec = 1;
+			files = (
+				AB747A9030580D9800B30276 /* QLVideo Contact Sheet.app in Embed Service Helper */,
+			);
+			name = "Embed Service Helper";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		ABA141B92D2EE3590040A4E6 /* Embed Libraries */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -245,6 +270,10 @@
 		AB17CCF4291E954B002A80AB /* include */ = {isa = PBXFileReference; lastKnownFileType = text; name = include; path = universal/include; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB1DAC6D2F4D201C006BB899 /* mdimporter-bridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "mdimporter-bridge.h"; sourceTree = "<group>"; };
 		AB2ACD9D1A696F72002411DF /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		AB35B6AE305EC7B400A8BDF0 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
+		AB35B6B030600D5100A8BDF0 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		AB35B6B230603D9600A8BDF0 /* callbacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = callbacks.h; sourceTree = "<group>"; };
+		AB35B6B330603D9600A8BDF0 /* callbacks.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = callbacks.m; sourceTree = "<group>"; };
 		AB3AD4DF2FEEADDC0016453D /* test-vp8-vorbis-webvtt.webm */ = {isa = PBXFileReference; lastKnownFileType = file; path = "test-vp8-vorbis-webvtt.webm"; sourceTree = "<group>"; };
 		AB3AD4E12FEEBF2B0016453D /* MediaExtensionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExtensionsView.swift; sourceTree = "<group>"; };
 		AB49FB6F2922769F00B126C0 /* QuickLook Video.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "QuickLook Video.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -286,17 +315,15 @@
 		AB5CF146304723D000DA6A16 /* videodecoder-vImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "videodecoder-vImage.swift"; sourceTree = "<group>"; };
 		AB5CF147304723D000DA6A16 /* videodecoder-zscale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "videodecoder-zscale.swift"; sourceTree = "<group>"; };
 		AB5CF148304723D000DA6A16 /* videodecoderfactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = videodecoderfactory.swift; sourceTree = "<group>"; };
-		AB5CF153304723D500DA6A16 /* ActionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionViewController.swift; sourceTree = "<group>"; };
-		AB5CF154304723D500DA6A16 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/ActionViewController.xib; sourceTree = "<group>"; };
-		AB5CF156304723D500DA6A16 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		AB5CF158304723D500DA6A16 /* contactsheet.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = contactsheet.entitlements; sourceTree = "<group>"; };
 		AB5CF159304723D500DA6A16 /* contactsheet-bridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "contactsheet-bridge.h"; sourceTree = "<group>"; };
 		AB5CF15A304723D500DA6A16 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		AB5CF15B304723D500DA6A16 /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
 		AB5CF161304723DD00DA6A16 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		AB5CF162304723DD00DA6A16 /* simpleplayer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = simpleplayer.entitlements; sourceTree = "<group>"; };
 		AB5CF163304723DD00DA6A16 /* simpleplayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = simpleplayer.swift; sourceTree = "<group>"; };
+		AB62FDBA305445A0003B2263 /* ServicesMenu.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = ServicesMenu.xcstrings; sourceTree = "<group>"; };
 		AB70C90E2EF1C14D00E30DCE /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
+		AB747A92305848EA00B30276 /* contactsheetview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = contactsheetview.swift; sourceTree = "<group>"; };
 		AB75CB1D261D19F2009BE894 /* QuickLookThumbnailing.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickLookThumbnailing.framework; path = System/Library/Frameworks/QuickLookThumbnailing.framework; sourceTree = SDKROOT; };
 		AB75CB1F261D19F2009BE894 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		AB7C714019F8A5C50006104E /* libbz2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libbz2.dylib; path = /usr/lib/libbz2.dylib; sourceTree = "<absolute>"; };
@@ -304,6 +331,7 @@
 		AB7C714819F8A6970006104E /* libiconv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.dylib; path = /usr/lib/libiconv.dylib; sourceTree = "<absolute>"; };
 		AB823D2F2ECB991F00F0E1D3 /* QLVideo Formats.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = "QLVideo Formats.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB8277781A7523F300F1D9F4 /* ca */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ca; path = ca.lproj/schema.strings; sourceTree = "<group>"; };
+		AB8557FB304756EF00B918F5 /* QLVideo Contact Sheet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "QLVideo Contact Sheet.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB93B0B4196B839600708B2E /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		AB93B0F7196CA60500708B2E /* QuickLook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickLook.framework; path = System/Library/Frameworks/QuickLook.framework; sourceTree = SDKROOT; };
 		AB93B0F9196CA60500708B2E /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
@@ -348,6 +376,7 @@
 		ABCDC9022F6372DE001DE092 /* buildschema */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = buildschema; sourceTree = "<group>"; };
 		ABCDC9042F6372DE001DE092 /* buildzimg */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = buildzimg; sourceTree = "<group>"; };
 		ABD12FB42F5895BA00F69ECA /* app-bridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "app-bridge.h"; sourceTree = "<group>"; };
+		ABD908C6304788DC004A75CA /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		ABE05B671A29FED900E228EE /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/schema.strings; sourceTree = "<group>"; };
 		ABE23BD11D258F6C004E9D26 /* VideoToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = VideoToolbox.framework; path = System/Library/Frameworks/VideoToolbox.framework; sourceTree = SDKROOT; };
 		ABE23BD61D25914C004E9D26 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
@@ -407,6 +436,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AB8557F8304756EF00B918F5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AB35B6A6305D49E700A8BDF0 /* libavformat.63.dylib in Frameworks */,
+				AB35B6A7305D49ED00A8BDF0 /* libavcodec.63.dylib in Frameworks */,
+				AB35B6A8305D49F100A8BDF0 /* libavutil.61.dylib in Frameworks */,
+				AB35B6A9305D49F500A8BDF0 /* libswscale.10.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AB9FB56A1965DD7200D39647 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -452,12 +492,12 @@
 			isa = PBXGroup;
 			children = (
 				AB5CF10C304723C900DA6A16 /* AppIcon.icon */,
+				AB5CF112304723C900DA6A16 /* callbacks.h */,
+				AB5CF113304723C900DA6A16 /* callbacks.m */,
 				AB5CF10D304723C900DA6A16 /* audiopassthrusamplecursor.swift */,
 				AB5CF10E304723C900DA6A16 /* audiosamplecursor.swift */,
 				AB5CF10F304723C900DA6A16 /* audiotrackreader.swift */,
 				AB5CF110304723C900DA6A16 /* averror.swift */,
-				AB5CF112304723C900DA6A16 /* callbacks.h */,
-				AB5CF113304723C900DA6A16 /* callbacks.m */,
 				AB5CF114304723C900DA6A16 /* cmtime.swift */,
 				AB5CF116304723C900DA6A16 /* formatreader.entitlements */,
 				AB5CF117304723C900DA6A16 /* formatreader.swift */,
@@ -496,6 +536,23 @@
 			path = videodecoder;
 			sourceTree = "<group>";
 		};
+		AB5CF15C304723D500DA6A16 /* contactsheet */ = {
+			isa = PBXGroup;
+			children = (
+				AB35B6AE305EC7B400A8BDF0 /* AppIcon.icon */,
+				AB35B6B230603D9600A8BDF0 /* callbacks.h */,
+				AB35B6B330603D9600A8BDF0 /* callbacks.m */,
+				AB35B6B030600D5100A8BDF0 /* main.swift */,
+				ABD908C6304788DC004A75CA /* AppDelegate.swift */,
+				AB747A92305848EA00B30276 /* contactsheetview.swift */,
+				AB5CF158304723D500DA6A16 /* contactsheet.entitlements */,
+				AB5CF159304723D500DA6A16 /* contactsheet-bridge.h */,
+				AB62FDBA305445A0003B2263 /* ServicesMenu.xcstrings */,
+				AB5CF15A304723D500DA6A16 /* Info.plist */,
+			);
+			path = contactsheet;
+			sourceTree = "<group>";
+		};
 		AB5CF164304723DD00DA6A16 /* simpleplayer */ = {
 			isa = PBXGroup;
 			children = (
@@ -525,6 +582,7 @@
 				AB9FB5781965DD7200D39647 /* mdimporter */,
 				AB5CF123304723C900DA6A16 /* formatreader */,
 				AB5CF149304723D000DA6A16 /* videodecoder */,
+				AB5CF15C304723D500DA6A16 /* contactsheet */,
 				AB5CF164304723DD00DA6A16 /* simpleplayer */,
 				ABCDC9062F6372DE001DE092 /* scripts */,
 				AB9FB56F1965DD7200D39647 /* Frameworks */,
@@ -540,6 +598,7 @@
 				AB823D2F2ECB991F00F0E1D3 /* QLVideo Formats.appex */,
 				AB5C5AAB2EDE0E0B00AD8A97 /* simpleplayer.app */,
 				AB0049862F2143CE0054D7B0 /* QLVideo Codecs.appex */,
+				AB8557FB304756EF00B918F5 /* QLVideo Contact Sheet.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -709,6 +768,7 @@
 				AB49FB6D2922769F00B126C0 /* Resources */,
 				AB7D27C42F55D61C001D9776 /* Embed Help */,
 				AB49FBB82923CECC00B126C0 /* Embed mdimporter */,
+				AB85580F304773A100B918F5 /* Embed Service Helper */,
 				ABE72EB929392E18005433DF /* Embed Executables */,
 				ABA141B92D2EE3590040A4E6 /* Embed Libraries */,
 				AB823D372ECB991F00F0E1D3 /* Embed ExtensionKit Extensions */,
@@ -766,6 +826,26 @@
 			productReference = AB823D2F2ECB991F00F0E1D3 /* QLVideo Formats.appex */;
 			productType = "com.apple.product-type.extensionkit-extension";
 		};
+		AB8557FA304756EF00B918F5 /* contactsheet */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AB855803304756F100B918F5 /* Build configuration list for PBXNativeTarget "contactsheet" */;
+			buildPhases = (
+				AB8557F7304756EF00B918F5 /* Sources */,
+				AB8557F8304756EF00B918F5 /* Frameworks */,
+				AB8557F9304756EF00B918F5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AB8558153047781300B918F5 /* PBXTargetDependency */,
+			);
+			name = contactsheet;
+			packageProductDependencies = (
+			);
+			productName = snapshots;
+			productReference = AB8557FB304756EF00B918F5 /* QLVideo Contact Sheet.app */;
+			productType = "com.apple.product-type.application";
+		};
 		AB9FB56C1965DD7200D39647 /* mdimporter */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = AB9FB5891965DD7200D39647 /* Build configuration list for PBXNativeTarget "mdimporter" */;
@@ -804,8 +884,9 @@
 					AB823D2E2ECB991F00F0E1D3 = {
 						CreatedOnToolsVersion = 26.1.1;
 					};
-					ABBA17CA3046028A00967EFC = {
+					AB8557FA304756EF00B918F5 = {
 						CreatedOnToolsVersion = 26.6;
+						LastSwiftMigration = 2660;
 					};
 				};
 			};
@@ -843,6 +924,7 @@
 				AB9FB56C1965DD7200D39647 /* mdimporter */,
 				AB823D2E2ECB991F00F0E1D3 /* formatreader */,
 				AB0049852F2143CE0054D7B0 /* videodecoder */,
+				AB8557FA304756EF00B918F5 /* contactsheet */,
 				AB5C5AAA2EDE0E0B00AD8A97 /* simpleplayer */,
 				AB535D4D1EDC390C00ECB0CE /* ffmpeg */,
 				AB66470D261A88C700D23514 /* dav1d */,
@@ -884,6 +966,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				AB5CF126304723C900DA6A16 /* AppIcon.icon in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AB8557F9304756EF00B918F5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AB62FDBB305445A1003B2263 /* ServicesMenu.xcstrings in Resources */,
+				AB35B6AF305EC7B400A8BDF0 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1020,6 +1111,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AB8557F7304756EF00B918F5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AB747A913058228800B30276 /* averror.swift in Sources */,
+				AB35B6AB305D903100A8BDF0 /* cmtime.swift in Sources */,
+				AB35B6B130600D5100A8BDF0 /* main.swift in Sources */,
+				ABD908C7304788E2004A75CA /* AppDelegate.swift in Sources */,
+				AB747A93305848F400B30276 /* contactsheetview.swift in Sources */,
+				AB35B6AA305D8F7200A8BDF0 /* snapshotter.swift in Sources */,
+				AB35B6B430603D9600A8BDF0 /* callbacks.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AB9FB5691965DD7200D39647 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1065,11 +1170,6 @@
 			target = AB535D4D1EDC390C00ECB0CE /* ffmpeg */;
 			targetProxy = AB535D571EDCD0BD00ECB0CE /* PBXContainerItemProxy */;
 		};
-		AB5CF10B3047216A00DA6A16 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = AB535D4D1EDC390C00ECB0CE /* ffmpeg */;
-			targetProxy = AB5CF10A3047216A00DA6A16 /* PBXContainerItemProxy */;
-		};
 		AB66472B261AA04400D23514 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = AB66470D261A88C700D23514 /* dav1d */;
@@ -1084,6 +1184,11 @@
 			isa = PBXTargetDependency;
 			target = AB823D2E2ECB991F00F0E1D3 /* formatreader */;
 			targetProxy = AB823D342ECB991F00F0E1D3 /* PBXContainerItemProxy */;
+		};
+		AB8558153047781300B918F5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AB535D4D1EDC390C00ECB0CE /* ffmpeg */;
+			targetProxy = AB8558143047781300B918F5 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1329,6 +1434,44 @@
 				PRODUCT_BUNDLE_IDENTIFIER = uk.org.marginal.qlvideo.formatreader;
 				PRODUCT_NAME = "QLVideo Formats";
 				SWIFT_OBJC_BRIDGING_HEADER = "formatreader/formatreader-bridge.h";
+			};
+			name = Release;
+		};
+		AB855804304756F100B918F5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = contactsheet/contactsheet.entitlements;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				INFOPLIST_FILE = contactsheet/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "QLVideo Contact Sheet";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = uk.org.marginal.qlvideo.contactsheet;
+				PRODUCT_NAME = "QLVideo Contact Sheet";
+				SWIFT_OBJC_BRIDGING_HEADER = "contactsheet/contactsheet-bridge.h";
+			};
+			name = Debug;
+		};
+		AB855805304756F100B918F5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = contactsheet/contactsheet.entitlements;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				INFOPLIST_FILE = contactsheet/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "QLVideo Contact Sheet";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = uk.org.marginal.qlvideo.contactsheet;
+				PRODUCT_NAME = "QLVideo Contact Sheet";
+				SWIFT_OBJC_BRIDGING_HEADER = "contactsheet/contactsheet-bridge.h";
 			};
 			name = Release;
 		};
@@ -1585,6 +1728,15 @@
 			buildConfigurations = (
 				AB823D382ECB991F00F0E1D3 /* Debug */,
 				AB823D392ECB991F00F0E1D3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AB855803304756F100B918F5 /* Build configuration list for PBXNativeTarget "contactsheet" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AB855804304756F100B918F5 /* Debug */,
+				AB855805304756F100B918F5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

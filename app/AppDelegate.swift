@@ -76,6 +76,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         MTRegisterProfessionalVideoWorkflowFormatReaders()
         VTRegisterProfessionalVideoWorkflowVideoDecoders()
 
+        // Ensure our Services helper app has been seen. Should be redundant but just in case
+        // https://developer.apple.com/documentation/BundleResources/placing-content-in-a-bundle
+        LSRegisterURL(
+            myBundle.bundleURL.appending(
+                components: "Contents",
+                "Helpers",
+                "QLVideo Contact Sheet.app",
+                directoryHint: .isDirectory
+            ) as CFURL,
+            false
+        )
+
         // Set up help
         if isSandboxed {
             NSHelpManager.shared.registerBooks(in: myBundle)  // should be redundant but just in case
@@ -101,8 +113,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if sysCtl("hw.machine") == "x86_64" && sysCtl("hw.optional.avx2_0") != "yes" {
             let alert = NSAlert()
             alert.alertStyle = .critical
-            alert.messageText = String(localized: "QuickLook Video requires a late-2013 Mac or newer, with AVX2 and VideoToolbox support", comment: "Error message in app")
-            alert.informativeText = String.localizedStringWithFormat(String(localized: "Please use release %@ of QuickLook Video", comment: "Advice in app"), "1.x")
+            alert.messageText = String(
+                localized: "QuickLook Video requires a late-2013 Mac or newer, with AVX2 and VideoToolbox support",
+                comment: "Error message in app"
+            )
+            alert.informativeText = String.localizedStringWithFormat(
+                String(localized: "Please use release %@ of QuickLook Video", comment: "Advice in app"),
+                "1.x"
+            )
             alert.addButton(withTitle: "OK")
             alert.runModal()
             return
@@ -113,8 +131,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if !VTIsHardwareDecodeSupported(kCMVideoCodecType_HEVC) {
             let alert = NSAlert()
             alert.alertStyle = .critical
-            alert.messageText = String(localized: "QuickLook Video 3.x requires GPU support for VideoToolbox, which isn't available on this machine", comment: "Error message in app")
-            alert.informativeText = String.localizedStringWithFormat(String(localized: "Please use release %@ of QuickLook Video", comment: "Advice in app"), "2.x")
+            alert.messageText = String(
+                localized: "QuickLook Video 3.x requires GPU support for VideoToolbox, which isn't available on this machine",
+                comment: "Error message in app"
+            )
+            alert.informativeText = String.localizedStringWithFormat(
+                String(localized: "Please use release %@ of QuickLook Video", comment: "Advice in app"),
+                "2.x"
+            )
             alert.addButton(withTitle: "OK")
             alert.runModal()
             return

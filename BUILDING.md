@@ -21,6 +21,7 @@ The Xcode project `QLVideo.xcodeproj` builds the following Products:
 * thumbnailer - QuickLook app extension provides thumbnails. Not included in v3 of the app.
 * formatreader - Media extension that provides support for non-native file types and audio codecs.
 * videodecoder - Media extension that provides support for non-native video codecs.
+* contactsheet - Service that provides previews of video files as a series of snapshots.
 * simpleplayer - Helper app for debugging the formatreader and videodecoder extensions. Plays files
   using AVFoundation. Not included in the main app.
 * benchmark - Simple executable for benchmarking. Not included in the app.
@@ -38,5 +39,17 @@ the Terminal.
 In addition, you can dump a summary of formatreader's internal state to the system log with `killall -info "QLVideo Formats"`. 
 
 To debug in Xcode, first build the "Quicklook Video" target once. Then switch targets depending on what you wish to debug:
-* mdimporter - Edit the "Run" scheme for the "mdimporter" target as follows: "Executable": `/usr/bin/mdimport`, "Debug executable": ✔, "Arguments": `-t -d2 <testfile>`.
-* formatreader and videodecoder - Edit the "Run" scheme for the "formatreader" target as follows: "Executable": simpleplayer.app, "Debug executable": ✔. Select a testfile in the simpleplayer application.
+* mdimporter - Edit the "Run" scheme:
+  - Executable: `/usr/bin/mdimport`
+  - Debug executable: ✔
+  - Arguments: `-t -d2 <testfile>`
+* formatreader and videodecoder - Edit the "Run" scheme for the "formatreader" target as follows:
+  - Executable: simpleplayer.app
+  - Debug executable: ✔
+
+  Choose a testfile in the simpleplayer application.
+* contactsheet - Edit the "Run" scheme:
+  - Executable: navigate to "QLVideo Contact Sheet.app" in QuickLookVideo.app/Contents/Helpers/
+  - Debug executable: ✔
+
+  Select a video file in Finder and choose "View contact Sheet" from Finder's Services menu.

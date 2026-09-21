@@ -199,17 +199,19 @@ class FormatReader: NSObject, MEFormatReader {
                             == AV_DISPOSITION_ATTACHED_PIC)))
             {
                 // MKVs can contain multiple cover art - see https://www.matroska.org/technical/attachments.html
-                let nameDict = av_dict_get(stream.pointee.metadata, "filename", nil, 0)
-                let filename = nameDict != nil ? String(cString: nameDict!.pointee.value) : ""
+                // Prefer portrait
                 var priority = 1
-                if filename.lowercased().hasPrefix("cover.") {
-                    priority = 4
-                } else if filename.lowercased().hasPrefix("cover_land.") {
-                    priority = 3
-                } else if filename.lowercased().hasPrefix("cover_small.") {
-                    priority = 2
+                if let nameDict = av_dict_get(stream.pointee.metadata, "filename", nil, 0) {
+                    let filename = String(cString: nameDict.pointee.value)
+                    if filename.lowercased().hasPrefix("cover.") {
+                        priority = 4
+                    } else if filename.lowercased().hasPrefix("cover_land.") {
+                        priority = 3
+                    } else if filename.lowercased().hasPrefix("small_cover.") {
+                        priority = 2
+                    }
                 }
-                if artPriority < priority  // Prefer first if multiple with same priority
+                if priority > artPriority  // Prefer first if multiple with same priority
                 {
                     artPriority = priority
                     artStream = i
@@ -249,7 +251,7 @@ class FormatReader: NSObject, MEFormatReader {
                 let snapshotter = SnapShotter(fmt_ctx: fmt_ctx!, stream: fmt_ctx!.pointee.streams[Int(bestVideo)]!),
                 let image = snapshotter.generateSnapshot(snapshotTime: snapshotTime),
                 let data = CFDataCreateMutable(kCFAllocatorDefault, 0),
-                let destination = CGImageDestinationCreateWithData(data, UTType.png.identifier as CFString, 1, nil)  // Encode as HEIC to handle either SDR or HDR
+                let destination = CGImageDestinationCreateWithData(data, UTType.png.identifier as CFString, 1, nil)  // Can't encode as HEIC since that requires HEVC codec which isn't available
             {
                 CGImageDestinationAddImage(destination, image, nil)
                 if CGImageDestinationFinalize(destination) {

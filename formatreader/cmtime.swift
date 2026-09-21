@@ -8,7 +8,7 @@
 import CoreMedia
 
 // Selected FFmpeg constants that we need but that Swift bridging can't figure out
-let AV_NOPTS_VALUE: Int64 = Int64.min
+nonisolated let AV_NOPTS_VALUE: Int64 = Int64.min
 
 extension CMTime: @retroactive CustomStringConvertible {
 
