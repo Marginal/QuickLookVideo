@@ -246,7 +246,7 @@ class VideoDropTarget: NSImageView {
         }
 
         parent.videoFile = url as URL
-        if (NSApp.delegate as! AppDelegate).isSandboxed { parent.videoFile!.startAccessingSecurityScopedResource() }
+        if (NSApp.delegate as! AppDelegate).isSandboxed { _ = parent.videoFile!.startAccessingSecurityScopedResource() }
         var fmt_ctx: UnsafeMutablePointer<AVFormatContext>? = nil
         guard avformat_open_input(&fmt_ctx, parent.videoFile!.path, nil, nil) == 0,
             avformat_find_stream_info(fmt_ctx, nil) == 0
@@ -376,7 +376,7 @@ class CoverDropTarget: NSImageView {
         }
 
         parent.coverFile = url as URL
-        if (NSApp.delegate as! AppDelegate).isSandboxed { parent.coverFile!.startAccessingSecurityScopedResource() }
+        if (NSApp.delegate as! AppDelegate).isSandboxed { _ = parent.coverFile!.startAccessingSecurityScopedResource() }
         if let json = try? helper(
             Bundle.main.path(forAuxiliaryExecutable: "ffprobe")!,
             args: ["-loglevel", "quiet", "-of", "json=c=1", "-show_streams", parent.coverFile!.path]
