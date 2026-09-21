@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		AB004A142F2259900054D7B0 /* QLVideo Codecs.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = AB0049862F2143CE0054D7B0 /* QLVideo Codecs.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		AB09EA0A2F7B272000E23C51 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AB09EA092F7B272000E23C51 /* Localizable.xcstrings */; };
+		AB1DB93530618A4A00A1FBFC /* schema.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AB1DB93430618A4A00A1FBFC /* schema.xcstrings */; };
 		AB34A76F2ECA3DBA0020E022 /* libdav1d.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ABA141EA2D2EF8CA0040A4E6 /* libdav1d.a */; };
 		AB35B6A6305D49E700A8BDF0 /* libavformat.63.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ABACB7CA3037463B00D96E8B /* libavformat.63.dylib */; };
 		AB35B6A7305D49ED00A8BDF0 /* libavcodec.63.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ABACB7C83037463B00D96E8B /* libavcodec.63.dylib */; };
@@ -107,7 +108,6 @@
 		ABE23BD41D25903D004E9D26 /* VideoToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABE23BD11D258F6C004E9D26 /* VideoToolbox.framework */; };
 		ABE23BD71D25914C004E9D26 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABE23BD61D25914C004E9D26 /* AudioToolbox.framework */; };
 		ABE23BDA1D2591F8004E9D26 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABE23BD91D2591F8004E9D26 /* CoreMedia.framework */; };
-		ABE461181A15A776006C89A2 /* schema.strings in Resources */ = {isa = PBXBuildFile; fileRef = ABE4610E1A15A519006C89A2 /* schema.strings */; };
 		ABE72EB22937FAE4005433DF /* Main.xib in Resources */ = {isa = PBXBuildFile; fileRef = ABE72EB42937FAE4005433DF /* Main.xib */; };
 		ABE72EB82938E008005433DF /* IssueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABE72EB72938E008005433DF /* IssueView.swift */; };
 		ABE72EC1293A32F2005433DF /* ffprobe in Embed Executables */ = {isa = PBXBuildFile; fileRef = ABE72EBC29392EEB005433DF /* ffprobe */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -142,6 +142,13 @@
 			remoteGlobalIDString = AB535D4D1EDC390C00ECB0CE;
 			remoteInfo = ffmpeg;
 		};
+		AB1DB9333061850100A1FBFC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AB9FB5651965DD7200D39647 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AB535D4D1EDC390C00ECB0CE;
+			remoteInfo = ffmpeg;
+		};
 		AB49FB7E2922770100B126C0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AB9FB5651965DD7200D39647 /* Project object */;
@@ -150,13 +157,6 @@
 			remoteInfo = mdimporter;
 		};
 		AB535D571EDCD0BD00ECB0CE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = AB9FB5651965DD7200D39647 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = AB535D4D1EDC390C00ECB0CE;
-			remoteInfo = ffmpeg;
-		};
-		AB5CF10A3047216A00DA6A16 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AB9FB5651965DD7200D39647 /* Project object */;
 			proxyType = 1;
@@ -256,19 +256,13 @@
 /* Begin PBXFileReference section */
 		AB0049862F2143CE0054D7B0 /* QLVideo Codecs.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = "QLVideo Codecs.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB006A562F2978B20014937F /* libzimg.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libzimg.2.dylib; sourceTree = "<group>"; };
-		AB00C5C81A682EF800D71399 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/schema.strings; sourceTree = "<group>"; };
-		AB00C5CA1A682F6800D71399 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/schema.strings; sourceTree = "<group>"; };
-		AB00C5CB1A682F7200D71399 /* el */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = el; path = el.lproj/schema.strings; sourceTree = "<group>"; };
 		AB09EA062F7B21FA00E23C51 /* mul */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = mul; path = mul.lproj/Main.xcstrings; sourceTree = "<group>"; };
 		AB09EA092F7B272000E23C51 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
-		AB0B80BF1EED41F1008A22DC /* cs */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = cs; path = cs.lproj/schema.strings; sourceTree = "<group>"; };
-		AB0B80C11EED4204008A22DC /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/schema.strings; sourceTree = "<group>"; };
-		AB0E0D3C1A15B0300056CC24 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/schema.strings; sourceTree = "<group>"; };
-		AB0E0D3D1A15B03B0056CC24 /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/schema.strings; sourceTree = "<group>"; };
 		AB17AF8E3003AB20003767DB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		AB17AF8F3003AB31003767DB /* BUILDING.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = BUILDING.md; sourceTree = "<group>"; };
 		AB17CCF4291E954B002A80AB /* include */ = {isa = PBXFileReference; lastKnownFileType = text; name = include; path = universal/include; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB1DAC6D2F4D201C006BB899 /* mdimporter-bridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "mdimporter-bridge.h"; sourceTree = "<group>"; };
+		AB1DB93430618A4A00A1FBFC /* schema.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = schema.xcstrings; sourceTree = "<group>"; };
 		AB2ACD9D1A696F72002411DF /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		AB35B6AE305EC7B400A8BDF0 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		AB35B6B030600D5100A8BDF0 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
@@ -279,7 +273,6 @@
 		AB49FB6F2922769F00B126C0 /* QuickLook Video.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "QuickLook Video.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB49FB7A292276A100B126C0 /* QuickLookVideo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = QuickLookVideo.entitlements; sourceTree = "<group>"; };
 		AB49FB952923B5BB00B126C0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		AB54B962217F425D00558403 /* pt-PT */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-PT"; path = "pt-PT.lproj/schema.strings"; sourceTree = "<group>"; };
 		AB5C5AAB2EDE0E0B00AD8A97 /* simpleplayer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = simpleplayer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB5CF10C304723C900DA6A16 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		AB5CF10D304723C900DA6A16 /* audiopassthrusamplecursor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = audiopassthrusamplecursor.swift; sourceTree = "<group>"; };
@@ -330,14 +323,11 @@
 		AB7C714619F8A6730006104E /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = "<absolute>"; };
 		AB7C714819F8A6970006104E /* libiconv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.dylib; path = /usr/lib/libiconv.dylib; sourceTree = "<absolute>"; };
 		AB823D2F2ECB991F00F0E1D3 /* QLVideo Formats.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = "QLVideo Formats.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
-		AB8277781A7523F300F1D9F4 /* ca */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ca; path = ca.lproj/schema.strings; sourceTree = "<group>"; };
 		AB8557FB304756EF00B918F5 /* QLVideo Contact Sheet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "QLVideo Contact Sheet.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB93B0B4196B839600708B2E /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		AB93B0F7196CA60500708B2E /* QuickLook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickLook.framework; path = System/Library/Frameworks/QuickLook.framework; sourceTree = SDKROOT; };
 		AB93B0F9196CA60500708B2E /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
 		AB93B0FB196CA60500708B2E /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
-		AB96EE6B2183810500694152 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/schema.strings; sourceTree = "<group>"; };
-		AB97CDD21A3A059C005FECB1 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/schema.strings; sourceTree = "<group>"; };
 		AB9846DC196B790F00AF6349 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AB9FB56D1965DD7200D39647 /* QLVideo Metadata.mdimporter */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "QLVideo Metadata.mdimporter"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB9FB5721965DD7200D39647 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
@@ -364,24 +354,17 @@
 		ABACB7CD3037463B00D96E8B /* libswscale.10.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libswscale.10.dylib; sourceTree = "<group>"; };
 		ABACB7EA303751AA00D96E8B /* libzimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libzimg.a; sourceTree = "<group>"; };
 		ABACC038303F302C00D96E8B /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
-		ABB8CF531A1C798B00CF242E /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/schema.strings; sourceTree = "<group>"; };
 		ABBA11CB3040605F00967EFC /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		ABBC10DE1C1DF5F600B25E28 /* liblzma.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = liblzma.5.dylib; path = /usr/lib/liblzma.5.dylib; sourceTree = "<absolute>"; };
-		ABC22D232070E05200A2D884 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = hu.lproj/schema.strings; sourceTree = "<group>"; };
-		ABC8EE0A29328A4D00F97C3C /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/schema.strings"; sourceTree = "<group>"; };
-		ABC8EE0D29328B2800F97C3C /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/schema.strings"; sourceTree = "<group>"; };
-		ABC8EE0F2932A92100F97C3C /* nb-NO */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "nb-NO"; path = "nb-NO.lproj/schema.strings"; sourceTree = "<group>"; };
 		ABCDC9002F6372DE001DE092 /* builddav1d */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = builddav1d; sourceTree = "<group>"; };
 		ABCDC9012F6372DE001DE092 /* buildffmpeg */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = buildffmpeg; sourceTree = "<group>"; };
 		ABCDC9022F6372DE001DE092 /* buildschema */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = buildschema; sourceTree = "<group>"; };
 		ABCDC9042F6372DE001DE092 /* buildzimg */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = buildzimg; sourceTree = "<group>"; };
 		ABD12FB42F5895BA00F69ECA /* app-bridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "app-bridge.h"; sourceTree = "<group>"; };
 		ABD908C6304788DC004A75CA /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		ABE05B671A29FED900E228EE /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/schema.strings; sourceTree = "<group>"; };
 		ABE23BD11D258F6C004E9D26 /* VideoToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = VideoToolbox.framework; path = System/Library/Frameworks/VideoToolbox.framework; sourceTree = SDKROOT; };
 		ABE23BD61D25914C004E9D26 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		ABE23BD91D2591F8004E9D26 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
-		ABE4610F1A15A519006C89A2 /* en */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; name = en; path = en.lproj/schema.strings; sourceTree = "<group>"; };
 		ABE72EB32937FAE4005433DF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/Main.xib; sourceTree = "<group>"; };
 		ABE72EB72938E008005433DF /* IssueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueView.swift; sourceTree = "<group>"; };
 		ABE72EBC29392EEB005433DF /* ffprobe */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = ffprobe; path = universal/bin/ffprobe; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -643,7 +626,7 @@
 				AB9FB5801965DD7200D39647 /* GetMetadataForFile.swift */,
 				ABA7F71F301A612D008AAAFE /* CodecName.swift */,
 				AB9FB58C1965DF0700D39647 /* Info.plist */,
-				ABE4610E1A15A519006C89A2 /* schema.strings */,
+				AB1DB93430618A4A00A1FBFC /* schema.xcstrings */,
 			);
 			path = mdimporter;
 			sourceTree = "<group>";
@@ -982,8 +965,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ABE461181A15A776006C89A2 /* schema.strings in Resources */,
 				ABBA11CC3040605F00967EFC /* AppIcon.icon in Resources */,
+				AB1DB93530618A4A00A1FBFC /* schema.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1188,36 +1171,11 @@
 		AB8558153047781300B918F5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = AB535D4D1EDC390C00ECB0CE /* ffmpeg */;
-			targetProxy = AB8558143047781300B918F5 /* PBXContainerItemProxy */;
+			targetProxy = AB1DB9333061850100A1FBFC /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		ABE4610E1A15A519006C89A2 /* schema.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				ABE4610F1A15A519006C89A2 /* en */,
-				AB0E0D3C1A15B0300056CC24 /* fr */,
-				AB0E0D3D1A15B03B0056CC24 /* it */,
-				ABB8CF531A1C798B00CF242E /* sv */,
-				ABE05B671A29FED900E228EE /* ja */,
-				AB97CDD21A3A059C005FECB1 /* es */,
-				AB00C5C81A682EF800D71399 /* de */,
-				AB00C5CA1A682F6800D71399 /* nl */,
-				AB00C5CB1A682F7200D71399 /* el */,
-				AB8277781A7523F300F1D9F4 /* ca */,
-				AB0B80BF1EED41F1008A22DC /* cs */,
-				AB0B80C11EED4204008A22DC /* ru */,
-				ABC22D232070E05200A2D884 /* hu */,
-				AB54B962217F425D00558403 /* pt-PT */,
-				AB96EE6B2183810500694152 /* ko */,
-				ABC8EE0A29328A4D00F97C3C /* pt-BR */,
-				ABC8EE0D29328B2800F97C3C /* zh-Hans */,
-				ABC8EE0F2932A92100F97C3C /* nb-NO */,
-			);
-			name = schema.strings;
-			sourceTree = "<group>";
-		};
 		ABE72EB42937FAE4005433DF /* Main.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -1294,7 +1252,6 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = uk.org.marginal.qlvideo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = NO;
@@ -1317,7 +1274,6 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = uk.org.marginal.qlvideo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = NO;
@@ -1538,6 +1494,7 @@
 				HEADER_SEARCH_PATHS = "$(BUILT_PRODUCTS_DIR)/universal/include";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2014-2026 Jonathan Harris. Licensed under GPLv2 or later.";
 				LIBRARY_SEARCH_PATHS = "$(BUILT_PRODUCTS_DIR)/universal/lib";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.11;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -1616,6 +1573,7 @@
 				HEADER_SEARCH_PATHS = "$(BUILT_PRODUCTS_DIR)/universal/include";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2014-2026 Jonathan Harris. Licensed under GPLv2 or later.";
 				LIBRARY_SEARCH_PATHS = "$(BUILT_PRODUCTS_DIR)/universal/lib";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
