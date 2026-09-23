@@ -107,6 +107,12 @@
             "value" : "mono"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mono"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -221,6 +227,12 @@
             "value" : "stereo"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "stereo"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -302,6 +314,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Visa Kontaktkarta"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontak Sayfasını Göster"
           }
         }
       }

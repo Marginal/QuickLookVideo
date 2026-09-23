@@ -107,6 +107,12 @@
             "value" : "Bildfrekvens"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kare hızı"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -219,6 +225,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Undertexter"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altyazılar"
           }
         },
         "zh-Hans" : {

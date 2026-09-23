@@ -107,6 +107,12 @@
             "value" : "OK"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ОК"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -218,6 +224,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Avsluta QuickLook Video"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video’dan Çık"
           }
         },
         "zh-Hans" : {
@@ -359,6 +371,12 @@
             "value" : "Lägg till"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ekle"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -470,6 +488,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Version"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sürüm"
           }
         },
         "zh-Hans" : {
@@ -585,6 +609,12 @@
             "value" : "Miniatyrer"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Küçük Resimler"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -698,6 +728,12 @@
             "value" : "Avbryt"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vazgeç"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -799,6 +835,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tiden för att ta en ögonblicksbild för miniatyrer i Finder fönster.\nEndast för filer som inte innehåller omslagskonst."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finder pencerelerindeki küçük resimler için anlık görüntünün alınacağı zaman. Yalnızca kapak resmi içermeyen dosyalar için."
           }
         }
       }
@@ -906,6 +948,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fönster"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pencere"
           }
         },
         "zh-Hans" : {
@@ -1021,6 +1069,12 @@
             "value" : "Arkiv"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosya"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1134,6 +1188,12 @@
             "value" : "Omslagsbilder..."
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapak Resmi…"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1222,6 +1282,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Starta om Finder och regenerera miniatyrer."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finder’ı yeniden başlatın ve küçük resimleri yeniden oluşturun."
           }
         }
       }
@@ -1326,6 +1392,12 @@
           }
         },
         "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "tr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "OK"
@@ -1444,6 +1516,12 @@
             "value" : "Visa i Finder"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finder’da Göster"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1539,6 +1617,12 @@
             "value" : "Kraschrapporter hittade"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çökme raporları bulundu"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1626,6 +1710,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Obs:\n- Du behöver ett GitHub-konto för att rapportera ett problem. Du kan registrera dig för en i nästa steg.\n- Filformatet kommer att inkluderas i det nya ärendet.\n- Inga filnamn eller annat filinnehåll kommer att skickas.\n- Du kan granska det nya problemet innan du skickar in."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not:\n- Bir sorun bildirmek için GitHub hesabınız olması gerekir. Sonraki adımda bir hesap oluşturabilirsiniz.\n- Dosya biçimi yeni sorun kaydına eklenecektir.\n- Hiçbir dosya adı veya başka dosya içeriği gönderilmeyecektir.\n- Yeni sorun kaydını göndermeden önce gözden geçirebileceksiniz."
           }
         }
       }
@@ -1735,6 +1825,12 @@
             "value" : "Arkiv"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosya"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1841,6 +1937,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Öppna Systeminställningar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sistem Ayarları’nı Aç"
           }
         },
         "zh-Hans" : {
@@ -1956,6 +2058,12 @@
             "value" : "Stäng"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapat"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2043,6 +2151,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Släpp en problematisk videofil här"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorunlu bir video dosyasını buraya bırakın"
           }
         },
         "zh-Hans" : {
@@ -2171,6 +2285,12 @@
             "value" : "Hjälp"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yardım"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2282,6 +2402,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "QuickLook Video Hjälp"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video Yardım"
           }
         },
         "zh-Hans" : {
@@ -2424,6 +2550,12 @@
             "value" : "Ögonblicksbild"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anlık Görüntü"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2530,6 +2662,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Medietillägg"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ortam Genişletmeleri"
           }
         },
         "zh-Hans" : {
@@ -2645,6 +2783,12 @@
             "value" : "Rapportera ett problem"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorun Bildir"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2732,6 +2876,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En zip-fil har placerats på skrivbordet:"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masaüstünüze bir zip dosyası yerleştirildi:"
           }
         },
         "zh-Hans" : {
@@ -2860,6 +3010,12 @@
             "value" : "Uppdatera"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yenile"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2973,6 +3129,12 @@
             "value" : "Lägg alla överst"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tümünü Öne Getir"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3055,6 +3217,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Appen levererar två mediatillägg:"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu uygulama iki Ortam Genişletmesi sağlar:"
           }
         }
       }
@@ -3162,6 +3330,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rapportera"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rapor"
           }
         },
         "zh-Hans" : {
@@ -3277,6 +3451,12 @@
             "value" : "Göm QuickLook Video"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video’yu Gizle"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3364,6 +3544,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Det finns några senaste kraschrapporter för denna app plugins"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu uygulamanın eklentilerine ait bazı yeni çökme raporları var."
           }
         },
         "zh-Hans" : {
@@ -3479,6 +3665,12 @@
             "value" : "För att se miniatyrer av videofiler så behöver du i vissa dall starta om Finder. Du kan också logga ut och logga in igen."
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Video dosyalarının küçük resimlerini görmek için Finder’ı yeniden başlatmanız veya oturumu kapatıp yeniden açmanız gerekebilir."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3572,6 +3764,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Släpp videofil här"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Video dosyasını buraya bırakın"
           }
         },
         "zh-Hans" : {
@@ -3687,6 +3885,12 @@
             "value" : "Fönster"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pencere"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3800,6 +4004,12 @@
             "value" : "Avbryt"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vazgeç"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3887,6 +4097,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Släpp filen för att använda som omslagsbild här.\nLämna tomt för att ta bort befintlig omslagsbild."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapak resmi olarak kullanılacak dosyayı buraya bırakın. Mevcut kapak resmini kaldırmak için boş bırakın."
           }
         }
       }
@@ -3983,6 +4199,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vänligen bifoga den till ditt GitHub-problem."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lütfen bunu GitHub sorun kaydınıza ekleyin."
           }
         },
         "zh-Hans" : {
@@ -4098,6 +4320,12 @@
             "value" : "Göm övriga"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diğerlerini Gizle"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4211,6 +4439,12 @@
             "value" : "Rapportera ett problem"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorun Bildir"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4293,6 +4527,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dessa måste aktiveras i Systeminställningar.\nTryck på Uppdatera igen efter att du har aktiverat dessa medietillägg."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bunların Sistem Ayarları’nda etkinleştirilmesi gerekir. Bu Ortam Genişletmelerini etkinleştirdikten sonra Yenile’ye tekrar basın."
           }
         }
       }
@@ -4400,6 +4640,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Du kan uppleva hög CPU- och diskanvändning några minuter efter installationen. Detta beror på att Spotlight omindexerar alla dina video- och audiofiler som på förhand ej stöds av Mac OS X."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spotlight tüm “yerel olmayan” ses ve video dosyalarınızın dizinini yeniden oluştururken önümüzdeki birkaç dakika boyunca yüksek CPU ve disk kullanımı yaşayabilirsiniz."
           }
         },
         "zh-Hans" : {
@@ -4515,6 +4761,12 @@
             "value" : "Hjälp"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yardım"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4602,6 +4854,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Omslagsbilder visas i Finder miniatyrer och i statisk QuickLook förhandsvisningar.\n\nDu kan lägga till, byta ut eller ta bort omslagsbild i MP4, M4V, MKV och WEBM-filer.\n\nOmslagsbilden måste levereras som en JPEG-eller PNG-fil."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapak resmi, Finder’daki küçük resimlerde ve statik QuickLook önizlemelerinde görüntülenir.\n\nMP4, M4V, MKV ve WEBM dosyalarına kapak resmi ekleyebilir, mevcut kapak resmini değiştirebilir veya kaldırabilirsiniz.\n\nKapak resmi JPEG veya PNG dosyası olarak sağlanmalıdır."
           }
         },
         "zh-Hans" : {
@@ -4717,6 +4975,12 @@
             "value" : "Omslagsbilder"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapak Resmi"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4799,6 +5063,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aktivera mediatillägg"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ortam Genişletmelerini Etkinleştir"
           }
         }
       }

@@ -100,6 +100,12 @@
             "value" : "Lägg till"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ekle"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -175,6 +181,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lägg till omslagsbild"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapak resmi ekle"
           }
         }
       }
@@ -252,6 +264,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Släpp filen för att använda som omslagsbild här.\nLämna tomt för att ta bort befintlig omslagsbild."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapak resmi olarak kullanılacak dosyayı buraya bırakın. Mevcut kapak resmini kaldırmak için boş bırakın."
           }
         }
       }
@@ -337,6 +355,12 @@
             "value" : "Släpp videofil här"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Video dosyasını buraya bırakın"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -413,6 +437,12 @@
             "state" : "translated",
             "value" : "Filtypen stöder inte omslagsbild"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosya türü kapak resmini desteklemiyor"
+          }
         }
       }
     },
@@ -483,6 +513,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Inte en JPEG eller PNG fil"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "JPEG veya PNG dosyası değil"
           }
         }
       }
@@ -555,6 +591,12 @@
             "state" : "translated",
             "value" : "Inte en video fil"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Video dosyası değil"
+          }
         }
       }
     },
@@ -626,6 +668,12 @@
             "state" : "translated",
             "value" : "Inte en bild fil"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görüntü dosyası değil"
+          }
         }
       }
     },
@@ -684,6 +732,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Använd release %@ av QuickLook Video"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lütfen QuickLook Video’nun %@ sürümünü kullanın"
           }
         }
       }
@@ -744,6 +798,12 @@
             "state" : "translated",
             "value" : "QuickLook Video 3.x kräver GPU-stöd för VideoToolbox, som inte finns på denna maskin"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video 3.x, bu cihazda bulunmayan VideoToolbox için GPU desteği gerektirir"
+          }
         }
       }
     },
@@ -802,6 +862,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "QuickLook Video kräver en sen-2013 Mac eller nyare, med AVX2 och VideoToolbox stöd"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video, AVX2 ve VideoToolbox desteği bulunan 2013 sonu veya daha yeni bir Mac gerektirir"
           }
         }
       }
@@ -905,6 +971,12 @@
             "value" : "Ta bort"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kaldır"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -980,6 +1052,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ta bort omslagsbild"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapak resmini kaldır"
           }
         }
       }
@@ -1083,6 +1161,12 @@
             "value" : "Ersätt"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Değiştir"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1158,6 +1242,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ersätt omslagsbild"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapak resmini değiştir"
           }
         }
       }
