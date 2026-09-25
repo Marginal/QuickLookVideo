@@ -18,8 +18,9 @@ struct ContactSheetView: View {
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             List(Array(viewModel.images.enumerated()), id: \.offset, selection: $viewModel.selectedIndex) { index, image in
-                HDRImageView(image: image ?? NSImage())
+                Image(nsImage: image ?? NSImage())
                     .allowedDynamicRange(.constrainedHigh)
+                    .resizable()
                     .aspectRatio(contentMode: .fit)
                     .listRowBackground(
                         index == viewModel.selectedIndex ? Color(nsColor: .unemphasizedSelectedContentBackgroundColor) : Color.clear
@@ -29,7 +30,7 @@ struct ContactSheetView: View {
             if viewModel.selectedIndex < viewModel.images.count,
                 let image = viewModel.images[viewModel.selectedIndex]
             {
-                HDRImageView(image: image).allowedDynamicRange(.high).aspectRatio(contentMode: .fit)
+                HDRImageView(nsImage: image).allowedDynamicRange(.high).aspectRatio(contentMode: .fit)
             }
         }
         .onChange(of: viewModel.images.count) { _, count in
@@ -43,27 +44,27 @@ struct ContactSheetView: View {
 
 // Image doesn't seem to respond to .allowedDynamicRange on macOS 26, so wrap an NSImageView instead
 struct HDRImageView: NSViewRepresentable {
-    let image: NSImage
+    let nsImage: NSImage
 
     func makeNSView(context: Context) -> NSImageView {
         let view = NSImageView()
-        view.image = image
+        view.image = nsImage
         view.imageScaling = .scaleProportionallyUpOrDown
         return view
     }
 
     func updateNSView(_ nsView: NSImageView, context: Context) {
-        nsView.image = image
+        nsView.image = nsImage
     }
 
     func sizeThatFits(_ proposal: ProposedViewSize, nsView: Self.NSViewType, context: Self.Context) -> CGSize? {
         #if DEBUG
             logger.debug(
-                "sizeThatFits \(Int(image.size.width))x\(Int(image.size.height)) -> \(String(describing: proposal), privacy:. public)"
+                "sizeThatFits \(Int(nsImage.size.width))x\(Int(nsImage.size.height)) -> \(String(describing: proposal), privacy:. public)"
             )
         #endif
         if let width = proposal.width {
-            return CGSize(width: width.rounded(), height: (width * image.size.height / image.size.width).rounded())
+            return CGSize(width: width.rounded(), height: (width * nsImage.size.height / nsImage.size.width).rounded())
         } else {
             return nil
         }
