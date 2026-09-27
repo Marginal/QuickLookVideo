@@ -19,6 +19,7 @@ if [ "${ACTION}" == "clean" ]; then
 else
 	# For nasm and pkg-config
 	PATH=$PATH:/opt/homebrew/bin:/usr/local/bin
+	bash "${SRCROOT}/scripts/patchffmpeg" "${SRCROOT}/${TARGET_NAME}"
 
 	echo Build in ${OBJECT_FILE_DIR}
 	BUILT=""

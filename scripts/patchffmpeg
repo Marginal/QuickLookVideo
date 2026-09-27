@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+
+SOURCE=${1:?Usage: patchffmpeg FFmpeg-source-directory}
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+PATCH="${SCRIPT_DIR}/../patches/ffmpeg-notchlc-alpha.patch"
+
+# Leave the pinned submodule revision intact. Accept an already patched source
+# tree for incremental builds, but fail rather than silently build a broken codec
+# if a future FFmpeg update makes this backport incompatible.
+if git -C "$SOURCE" apply --reverse --check "$PATCH" 2>/dev/null; then
+	echo "NotchLC alpha patch already applied"
+elif git -C "$SOURCE" apply --check "$PATCH"; then
+	git -C "$SOURCE" apply "$PATCH"
+else
+	echo "Unable to apply the NotchLC alpha patch; review it against the FFmpeg revision." >&2
+	exit 1
+fi
