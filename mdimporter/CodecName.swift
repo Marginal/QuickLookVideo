@@ -157,6 +157,8 @@ class CodecName {
         AV_CODEC_ID_PJS: "PJS",
         AV_CODEC_ID_SRT: "SubRip",
         AV_CODEC_ID_SSA: "SSA",
+        AV_CODEC_ID_SUBRIP: "SubRip",
+        AV_CODEC_ID_WEBVTT: "WebVTT",
     ]
 
     static func av_fourcc2str(_ fourcc: UInt32) -> String {

@@ -187,12 +187,14 @@ public func GetMetadataForFile(
         }
 
         // Per-stream metadata
+        var dec_ctx = [UnsafeMutablePointer<AVCodecContext>?](repeating: nil, count: Int(fmt_ctx.pointee.nb_streams))  // for decoding subtitles
         for idx in 0..<Int(fmt_ctx.pointee.nb_streams) {
             guard let stream = fmt_ctx.pointee.streams[idx] else { continue }
             let params = stream.pointee.codecpar!
 
             switch params.pointee.codec_type {
             case AVMEDIA_TYPE_AUDIO:
+                stream.pointee.discard = AVDISCARD_ALL
                 if idx != audioIdx,  // Skip best stream - handled above
                     let entry = av_dict_get(stream.pointee.metadata, "language", nil, 0),
                     let valC = entry.pointee.value,
@@ -203,13 +205,17 @@ public func GetMetadataForFile(
                 append(kMDItemMediaTypes, "Sound" as CFString, in: attrs)
 
             case AVMEDIA_TYPE_VIDEO:
+                stream.pointee.discard = AVDISCARD_ALL
                 if stream.pointee.disposition & (AV_DISPOSITION_ATTACHED_PIC | AV_DISPOSITION_TIMED_THUMBNAILS) != 0 {
                     continue
                 }
                 append(kMDItemMediaTypes, "Video" as CFString, in: attrs)
 
             case AVMEDIA_TYPE_SUBTITLE:
-                if (stream.pointee.disposition & AV_DISPOSITION_FORCED) != 0 { continue }
+                if (stream.pointee.disposition & AV_DISPOSITION_FORCED) != 0 {
+                    stream.pointee.discard = AVDISCARD_ALL  // Don't index forced subtitles
+                    continue
+                }
                 if let entry = av_dict_get(stream.pointee.metadata, "title", nil, 0),
                     let valC = entry.pointee.value,
                     let title = String(validatingUTF8: valC),
@@ -225,7 +231,31 @@ public func GetMetadataForFile(
                 }
                 append(kMDItemMediaTypes, "Text" as CFString, in: attrs)
 
+                // Create a decoder context for each supported subtitle stream.
+                if let descriptor = avcodec_descriptor_get(stream.pointee.codecpar.pointee.codec_id),
+                    descriptor.pointee.props & AV_CODEC_PROP_TEXT_SUB != 0
+                {
+                    guard let codec = avcodec_find_decoder(params.pointee.codec_id) else {
+                        logger.warning(
+                            "No decoder for codec \"\(String(cString:avcodec_get_name(params.pointee.codec_id)), privacy: .public)\""
+                        )
+                        continue
+                    }
+                    dec_ctx[idx] = avcodec_alloc_context3(codec)
+                    if dec_ctx[idx] == nil
+                        || avcodec_parameters_to_context(dec_ctx[idx], &params.pointee) < 0
+                        || avcodec_open2(dec_ctx[idx], codec, nil) < 0
+                    {
+                        avcodec_free_context(&dec_ctx[idx])
+                        logger.warning(
+                            "Can't decode \"\(String(cString:avcodec_get_name(params.pointee.codec_id)), privacy: .public)\" subtitles"
+                        )
+                        continue
+                    }
+                }
+
             default:
+                stream.pointee.discard = AVDISCARD_ALL
                 if params.pointee.codec_type == AVMEDIA_TYPE_ATTACHMENT, params.pointee.codec_id == AV_CODEC_ID_TTF {
                     // Special handling for TrueType fonts which our build of FFmpeg won't decode
                     append(kMDItemMediaTypes, "Font" as CFString, in: attrs)
@@ -245,6 +275,75 @@ public func GetMetadataForFile(
             } else {
                 logger.info("Unsupported codec id \(params.pointee.codec_id.rawValue) for stream #\(idx)")
             }
+        }
+
+        // Text content - chapters
+        var text: [String] = []
+        for i in 0..<Int(fmt_ctx.pointee.nb_chapters) {
+            if let chapter = fmt_ctx.pointee.chapters[i],
+                let entry = av_dict_get(chapter.pointee.metadata, "title", nil, 0),
+                let title = String(validatingUTF8: entry.pointee.value)
+            {
+                text.append("\(i+1): \(title)")
+            }
+        }
+
+        // Text content - subtitles
+        if dec_ctx.contains(where: { $0 != nil }) {
+            var pkt = av_packet_alloc()
+            while true {
+                let ret = av_read_frame(fmt_ctx, pkt)
+                if ret != 0 {
+                    av_packet_free(&pkt)
+                    break
+                }
+                let idx = Int(pkt!.pointee.stream_index)
+                if let stream = fmt_ctx.pointee.streams[idx],
+                    stream.pointee.codecpar.pointee.codec_type == AVMEDIA_TYPE_SUBTITLE,
+                    let context = dec_ctx[idx]
+                {
+                    var got_sub: Int32 = 0
+                    var subtitle = AVSubtitle()
+                    avcodec_decode_subtitle2(context, &subtitle, &got_sub, pkt)
+                    for i in 0..<Int(subtitle.num_rects) {
+                        let rect = subtitle.rects[i]!
+                        if rect.pointee.type == SUBTITLE_TEXT {
+                            let cue = String(cString: rect.pointee.text).trimmingCharacters(in: .whitespacesAndNewlines)
+                            if cue != "" && (text.isEmpty || cue != text.last) {
+                                text.append(cue)
+                            }
+                        } else if rect.pointee.type == SUBTITLE_ASS {  // Also WebVTT which FFmpeg translates to ASS
+                            let fields = String(cString: rect.pointee.ass).split(
+                                separator: ",",
+                                maxSplits: 8,
+                                omittingEmptySubsequences: false
+                            )
+                            guard fields.count == 9,
+                                fields[7] == ""  // skip visual effects including karaoke
+                            else { continue }
+                            let cue = fields[8].replacingOccurrences(
+                                of: #"\{[^}]*\}"#,  // strip inline styling
+                                with: "",
+                                options: .regularExpression
+                            )
+                            .replacingOccurrences(of: "\\n", with: " ")  // line break
+                            .replacingOccurrences(of: "\\N", with: " ")  // hard line break
+                            .replacingOccurrences(of: "\\h", with: " ")  // hard space
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                            if cue != "" && (text.isEmpty || cue != text.last) {  // text can be repeated with different styling in karaoke
+                                text.append(cue)
+                            }
+                        }
+                    }
+                    avsubtitle_free(&subtitle)
+                }
+                av_packet_unref(pkt)
+            }
+            for var context in dec_ctx { avcodec_free_context(&context) }
+        }
+
+        if !text.isEmpty {
+            attrs[kMDItemTextContent!] = text.joined(separator: "\n") as CFString
         }
 
     }

@@ -15,11 +15,10 @@
 			<string>MDImporter</string>
 			<key>LSItemContentTypes</key>	<!-- Keep in sync with qlgenerator -->
 			<array>
-				<!-- Try to handle everything; CoreMedia importers will grab the more specific UTIs that it wants to handle -->
-				<string>public.audiovisual-content</string>
-
 				<!-- schema:start - pull following UTIs into schema.xml for display in Get Info dialog -->
 
+				<!-- Try to handle everything; CoreMedia importers will grab the more specific UTIs that it wants to handle -->
+				<string>public.audiovisual-content</string>
 				<string>public.movie</string>
 
 				<!-- CoreTypes not handled by CoreMedia importer -->
@@ -52,9 +51,7 @@
 				<string>org.matroska.mkv</string>
 				<string>org.webmproject.webm</string>
 				<string>jp.co.dvdfllc.vob</string>
-				<string>com.microsoft.wtv</string>
 				<string>org.smpte.gxf</string>
-				<string>com.microsoft.xesc</string>
 				<string>org.mythtv.nuppelvideo</string>
 				<string>org.xiph.ogv</string>
 				<string>public.ivf</string>
@@ -64,8 +61,6 @@
 				<string>com.microsoft.wtv</string>
 				<string>com.microsoft.xesc</string>
 				<string>com.real.realvideo</string>
-				<string>org.smpte.mxf</string>
-				<string>org.webmproject.webm</string>
 				<string>com.wavpack.wv</string>
 
 				<!-- defined by VLC.app >= 2.2 -->

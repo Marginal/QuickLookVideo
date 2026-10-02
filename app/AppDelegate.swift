@@ -24,7 +24,7 @@ let kSettingsSnapshotAlways = "SnapshotAlways"  // Whether to generate static sn
 let kDefaultSnapshotTime = 0.25  // CoreMedia generator appears to use 10s.
 
 // Last time the extensions changed enough that we should automatically reset spotlight or thumbnails
-let kResetSpotlight = 3.09  // metadata schema fix
+let kResetSpotlight = 3.13  // index chapter titles and subtitles
 let kResetQuickLook = 3.11  // Cover art fix and thumbnail improvements
 
 @main

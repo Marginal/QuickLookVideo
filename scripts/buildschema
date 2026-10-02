@@ -1,6 +1,9 @@
 #!/bin/bash
 #
-# Build Resources/schema.xml with UTIs extacted from Info.plist
+# Build Resources/schema.xml for video UTIs extacted from Info.plist
+#
+# https://developer.apple.com/library/archive/documentation/Carbon/Conceptual/MDImporters/Concepts/SchemaRef.html
+# See /System/Library/Frameworks/CoreServices.framework/Frameworks/Metadata.framework/Resources/schema.plist
 #
 
 set -e
@@ -38,11 +41,14 @@ for uti in $utis; do
 			<allattrs>
 				kMDItemAlternateNames
 				kMDItemContentCreationDate
+				kMDItemComposer
 				kMDItemComment
+				kMDItemHeadline
 				kMDItemLanguages
 				kMDItemPublishers
 				kMDItemRecordingDate
 				kMDItemRecordingYear
+				kMDItemTextContent
 				uk_org_marginal_qlvideo_framerate
 				uk_org_marginal_qlvideo_subtitles
 			</allattrs>
