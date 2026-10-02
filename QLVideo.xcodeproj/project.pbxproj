@@ -56,6 +56,18 @@
 		AB5CF165304723DD00DA6A16 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = AB5CF161304723DD00DA6A16 /* AppIcon.icon */; };
 		AB5CF166304723DD00DA6A16 /* simpleplayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5CF163304723DD00DA6A16 /* simpleplayer.swift */; };
 		AB62FDBB305445A1003B2263 /* ServicesMenu.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AB62FDBA305445A0003B2263 /* ServicesMenu.xcstrings */; };
+		AB638FD1306EBE4B009CB20D /* GetMetadataForFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB9FB5801965DD7200D39647 /* GetMetadataForFile.swift */; };
+		AB638FD3306EC0D2009CB20D /* CodecName.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABA7F71F301A612D008AAAFE /* CodecName.swift */; };
+		AB638FD4306EC0DD009CB20D /* averror.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5CF110304723C900DA6A16 /* averror.swift */; };
+		AB638FD9306EC3BF009CB20D /* libavcodec.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ABA141EC2D2EF8E70040A4E6 /* libavcodec.a */; };
+		AB638FDB306EC3C7009CB20D /* libavformat.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ABA141EE2D2EF8E70040A4E6 /* libavformat.a */; };
+		AB638FDC306EC3CA009CB20D /* libavutil.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ABA141EF2D2EF8E70040A4E6 /* libavutil.a */; };
+		AB638FDD306EC400009CB20D /* libdav1d.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ABA141EA2D2EF8CA0040A4E6 /* libdav1d.a */; };
+		AB638FDE306EC418009CB20D /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AB7C714619F8A6730006104E /* libz.dylib */; };
+		AB638FE0306EC432009CB20D /* libswresample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ABA141F12D2EF8E70040A4E6 /* libswresample.a */; };
+		AB638FE1306EC457009CB20D /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AB7C714019F8A5C50006104E /* libbz2.dylib */; };
+		AB638FE2306EC45B009CB20D /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AB7C714819F8A6970006104E /* libiconv.dylib */; };
+		AB638FE3306EC45E009CB20D /* liblzma.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ABBC10DE1C1DF5F600B25E28 /* liblzma.5.dylib */; };
 		AB70C90D2EF1C10500E30DCE /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB2ACD9D1A696F72002411DF /* AVFoundation.framework */; };
 		AB70C90F2EF1C14D00E30DCE /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB70C90E2EF1C14D00E30DCE /* AVKit.framework */; };
 		AB747A9030580D9800B30276 /* QLVideo Contact Sheet.app in Embed Service Helper */ = {isa = PBXBuildFile; fileRef = AB8557FB304756EF00B918F5 /* QLVideo Contact Sheet.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -404,6 +416,15 @@
 			files = (
 				AB70C90F2EF1C14D00E30DCE /* AVKit.framework in Frameworks */,
 				AB70C90D2EF1C10500E30DCE /* AVFoundation.framework in Frameworks */,
+				AB638FD9306EC3BF009CB20D /* libavcodec.a in Frameworks */,
+				AB638FDB306EC3C7009CB20D /* libavformat.a in Frameworks */,
+				AB638FDC306EC3CA009CB20D /* libavutil.a in Frameworks */,
+				AB638FE0306EC432009CB20D /* libswresample.a in Frameworks */,
+				AB638FDD306EC400009CB20D /* libdav1d.a in Frameworks */,
+				AB638FE1306EC457009CB20D /* libbz2.dylib in Frameworks */,
+				AB638FE2306EC45B009CB20D /* libiconv.dylib in Frameworks */,
+				AB638FE3306EC45E009CB20D /* liblzma.5.dylib in Frameworks */,
+				AB638FDE306EC418009CB20D /* libz.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1068,6 +1089,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				AB5CF166304723DD00DA6A16 /* simpleplayer.swift in Sources */,
+				AB638FD4306EC0DD009CB20D /* averror.swift in Sources */,
+				AB638FD1306EBE4B009CB20D /* GetMetadataForFile.swift in Sources */,
+				AB638FD3306EC0D2009CB20D /* CodecName.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1311,7 +1335,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = uk.org.marginal.qlvideo.simpleplayer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_OBJC_BRIDGING_HEADER = "mdimporter/mdimporter-bridge.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -1328,7 +1352,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = uk.org.marginal.qlvideo.simpleplayer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_OBJC_BRIDGING_HEADER = "mdimporter/mdimporter-bridge.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;

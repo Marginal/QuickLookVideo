@@ -81,6 +81,20 @@ struct ContentView: View {
                     }
                     defer { url.stopAccessingSecurityScopedResource() }
 
+                    // Dummy mdimport
+                    let attributes = NSMutableDictionary()
+                    let values = try? url.resourceValues(forKeys: [.contentTypeKey])
+                    if GetMetadataForFile(
+                        nil,
+                        attributes,
+                        (values?.contentType?.identifier ?? "public.data") as CFString?,
+                        url.path as CFString
+                    ).boolValue {
+                        print(attributes)
+                    } else {
+                        print("GetMetadataForFile failed")
+                    }
+
                     Task {
                         try? await printTrackInfo(url: url)
                     }
