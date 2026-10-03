@@ -399,6 +399,12 @@ class AudioTrackReader: TrackReader, METrackReader {
                 ? (dec_ctx!.pointee.bits_per_raw_sample > 0 ? UInt32(dec_ctx!.pointee.bits_per_raw_sample) : bytesPerSample << 3)
                 : (params.bits_per_raw_sample > 0 ? UInt32(params.bits_per_raw_sample) : bytesPerSample << 3)
         )
+        if formatID == kAudioFormatLinearPCM && AudioTrackReader.formatFlags[outFmt] == nil {
+            logger.error(
+                "AudioTrackReader stream \(self.index) loadTrackInfo: Unhandled sample format \(av_get_sample_fmt_name(AVSampleFormat(params.format)) != nil ? String(cString:av_get_sample_fmt_name(AVSampleFormat(params.format))) : String(outFmt.rawValue), privacy: .public)"
+            )
+            return completionHandler(nil, MEError(.unsupportedFeature))
+        }
         let flags =
             lossless
             ? AudioTrackReader.losslessFormatFlags[
