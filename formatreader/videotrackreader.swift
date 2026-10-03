@@ -172,17 +172,19 @@ class VideoTrackReader: TrackReader, METrackReader {
                     [
                         0, 0, 0, 0,  // Version/flags = ESDS
                         0x03,  // ES_DescrTag
-                        0x80, 0x80, UInt8(0x80 | (full_size >> 7)), UInt8(full_size & 0x7f),
+                    ]
+                    + descriptorLength(full_size) + [
                         0x00, 0x01, 0,  // ES_ID, priority
                         0x04,  // DecoderConfigDescrTag
-                        0x80, 0x80, UInt8(0x80 | (config_size >> 7)), UInt8(config_size & 0x7f),
+                    ]
+                    + descriptorLength(config_size) + [
                         0x20, 0x11,  // MPEG 4, video
                         0, 0, 0,  // buffer size
                         0, 0, 0, 0,  // max bitrate
                         0, 0, 0, 0,  // avg bitrate
                         0x05,  // DecSpecificInfoTag
-                        0x80, 0x80, UInt8(0x80 | (decoder_size >> 7)), UInt8(decoder_size & 0x7f),
                     ]
+                    + descriptorLength(decoder_size)
                     + [UInt8](
                         UnsafeBufferPointer<UInt8>(start: params.pointee.extradata, count: Int(params.pointee.extradata_size))
                     ) + [
@@ -491,6 +493,16 @@ class VideoTrackReader: TrackReader, METrackReader {
             )
             return completionHandler(nil, error)
         }
+    }
+
+    // Weird encoding of sizes in ISO sample descriptor atoms
+    private func descriptorLength(_ size: Int32) -> [UInt8] {
+        [
+            UInt8(0x80 | ((size >> 21) & 0x7f)),
+            UInt8(0x80 | ((size >> 14) & 0x7f)),
+            UInt8(0x80 | ((size >> 7) & 0x7f)),
+            UInt8(size & 0x7f),
+        ]
     }
 
     // For streams where the extradata required for decoding is in-band instead of in the container e.g. .avi,
