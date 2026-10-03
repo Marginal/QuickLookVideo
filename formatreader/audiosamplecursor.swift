@@ -40,10 +40,12 @@ class AudioSampleCursor: SampleCursor {
         to endSampleCursor: (any MESampleCursor)?,
         completionHandler: @escaping (CMSampleBuffer?, (any Error)?) -> Void
     ) {
+        // "If endSampleCursor is nil or refers to the same sample as the receiver,
+        //  only a single sample should be returned in the new sample buffer."
         guard let track = track as? AudioTrackReader,
-            let endSampleCursor = endSampleCursor as? SampleCursor,
+            let endSampleCursor = endSampleCursor != nil ? endSampleCursor as? SampleCursor : self,
             let startPkt = demuxer?.get(stream: streamIndex, handle: handle),
-            let _ = demuxer?.get(stream: streamIndex, handle: endSampleCursor.handle)
+            demuxer?.get(stream: streamIndex, handle: endSampleCursor.handle) != nil
         else {
             logger.error(
                 "\(self.debugDescription, privacy: .public) loadSampleBufferContainingSamples to \(endSampleCursor.debugDescription, privacy: .public)"
@@ -54,6 +56,11 @@ class AudioSampleCursor: SampleCursor {
             logger.debug(
                 "\(self.debugDescription, privacy: .public) loadSampleBufferContainingSamples to \(endSampleCursor.debugDescription, privacy: .public) packetCount=\(endSampleCursor.handle.index - self.handle.index + 1)"
             )
+        }
+        // "If endSampleCursor refers to a sample earlier than the receiver,
+        //  this method should fail and return MEErrorNoSamples as error code."
+        guard handle.index <= endSampleCursor.handle.index else {
+            return completionHandler(nil, MEError(.noSamples))
         }
 
         let params = track.stream.pointee.codecpar!
