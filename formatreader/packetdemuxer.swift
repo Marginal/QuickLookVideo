@@ -657,7 +657,15 @@ final class PacketDemuxer {
         // Missing duration can be seen in some VBR audio such as WMA in ASF.
         if packet.pointee.duration == 0 {
             if let prev = buffer.get(logicalIndex: buffer.count - 2) {
-                prev.pointee.duration = packet.pointee.pts - prev.pointee.pts  // Assumes packets demuxed in PTS order
+                if prev.pointee.pts != AV_NOPTS_VALUE, packet.pointee.pts != AV_NOPTS_VALUE,
+                    packet.pointee.pts - prev.pointee.pts > 0
+                {
+                    prev.pointee.duration = packet.pointee.pts - prev.pointee.pts  // Assumes packets demuxed in PTS order
+                } else if prev.pointee.dts != AV_NOPTS_VALUE, packet.pointee.dts != AV_NOPTS_VALUE,
+                    packet.pointee.dts - prev.pointee.dts > 0  // Fallback
+                {
+                    prev.pointee.duration = packet.pointee.dts - prev.pointee.dts
+                }
             } else {
                 if TRACE_PACKET_DEMUXER { logger.debug("PacketDemuxer stream \(stream) fixing up duration values") }
                 return  // Don't signal availability of the first packet. The final packet will be signalled with 0 duration when we hit halted.
