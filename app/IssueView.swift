@@ -52,10 +52,13 @@ class IssueView: NSView {
         }
         var report =
             "*Your description of the problem here!*\n\n\n---\nQuickLook Video \(version)\nmacOS: \(macOS)\nHardware: \(hardware)\n"
-        report.append("Previewer: \(pluginstatus(id: "com.apple.uk.org.marginal.qlvideo.previewer") ?? "Not found")\n")
-        report.append("Thumbnailer: \(pluginstatus(id: "com.apple.uk.org.marginal.qlvideo.thumbnailer") ?? "Not found")\n")
-        report.append("Media Formats: \(pluginstatus(id: "uk.org.marginal.qlvideo.formatreader") ?? "Not found")\n")
-        report.append("Media Codecs: \(pluginstatus(id: "uk.org.marginal.qlvideo.videodecoder") ?? "Not found")\n")
+        if !(NSApp.delegate as! AppDelegate).isSandboxed {
+            // pluginkit -m fails under Sandbox with "match: unauthorized discovery flag (PKDiscoverAll)"
+            report.append("Previewer: \(pluginstatus(id: "com.apple.uk.org.marginal.qlvideo.previewer") ?? "Not found")\n")
+            report.append("Thumbnailer: \(pluginstatus(id: "com.apple.uk.org.marginal.qlvideo.thumbnailer") ?? "Not found")\n")
+            report.append("Media Formats: \(pluginstatus(id: "uk.org.marginal.qlvideo.formatreader") ?? "Not found")\n")
+            report.append("Media Codecs: \(pluginstatus(id: "uk.org.marginal.qlvideo.videodecoder") ?? "Not found")\n")
+        }
 
         var filereport = "\n\(videoFile!.path):\n"
         if let type = try? videoFile?.resourceValues(forKeys: [.contentTypeKey]).contentType {
