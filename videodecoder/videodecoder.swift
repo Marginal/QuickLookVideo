@@ -311,11 +311,6 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             }
         }
 
-        // Hacks!
-        if params.pointee.codec_id == AV_CODEC_ID_NOTCHLC {
-            dec_ctx!.pointee.colorspace = AVCOL_SPC_BT709  // FFmpeg decoder mislabels Notch as RGB
-        }
-
         let pix_fmt_name = av_get_pix_fmt_name(dec_ctx!.pointee.pix_fmt)
         let color_space_name = av_color_space_name(dec_ctx!.pointee.colorspace)
         logger.log(

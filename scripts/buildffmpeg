@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e
-shopt -s extglob
+shopt -s extglob nullglob
 
 SCRIPT=`readlink -fn "$0"`
 EXES="ffmpeg ffprobe"
@@ -12,6 +12,12 @@ if [ ! -d "$(dirname "${BUILD_ROOT/ /_}")" ]; then ln -s "$(dirname "${BUILD_ROO
 export BUILT_PRODUCTS_DIR=${BUILT_PRODUCTS_DIR/ /_}
 if [ ! -d "$(dirname "${OBJROOT/ /_}")" ]; then ln -s "$(dirname "${OBJROOT}")" "$(dirname "${OBJROOT/ /_}")"; fi
 export OBJECT_FILE_DIR=${OBJECT_FILE_DIR/ /_}
+
+# Apply patches
+echo "Applying patches"
+for patch in "${SRCROOT}"/patches/*.patch; do
+	patch -d "${SRCROOT}/${TARGET_NAME}" -N -V none < "$patch" > /dev/null && echo `basename "$patch"` || echo `basename "$patch"` already applied
+done
 
 if [ "${ACTION}" == "clean" ]; then
 	echo Remove "${OBJECT_FILE_DIR}"

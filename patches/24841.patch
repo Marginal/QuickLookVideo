@@ -1,0 +1,83 @@
+From adc323187dda8cec5d9b778c83b1a4943c7afaf2 Mon Sep 17 00:00:00 2001
+From: 9c5s <98406118+9c5s@users.noreply.github.com>
+Date: Thu, 1 Oct 2026 20:38:25 +0900
+Subject: [PATCH 1/2] avcodec/notchlc: set BT.601 colorspace instead of RGB
+
+The decoder outputs YCbCr in yuva444p12, but tags the frames as
+AVCOL_SPC_RGB, which means that the planes hold G, B and R. Users of
+the tag fail or pick a wrong matrix: zscale errors out with "YUV color
+family cannot have RGB matrix coefficients", libplacebo falls back to
+BT.709, and players that follow the tag display the planes as GBR.
+
+A least-squares fit of the NotchLC Big Buck Bunny sample against the
+same frames of the H.264 version matches the BT.601 coefficients for
+R and G (1.402, 0.344, 0.714) and not the BT.709 ones (1.575, 0.187,
+0.468). Tag the output as BT.470BG.
+
+Fixes: #24840
+---
+ libavcodec/notchlc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libavcodec/notchlc.c b/libavcodec/notchlc.c
+index 396089254e..8ee9f535a5 100644
+--- a/libavcodec/notchlc.c
++++ b/libavcodec/notchlc.c
+@@ -65,7 +65,7 @@ static av_cold int decode_init(AVCodecContext *avctx)
+ {
+     avctx->pix_fmt = AV_PIX_FMT_YUVA444P12;
+     avctx->color_range = AVCOL_RANGE_JPEG;
+-    avctx->colorspace = AVCOL_SPC_RGB;
++    avctx->colorspace = AVCOL_SPC_BT470BG;
+     avctx->color_primaries = AVCOL_PRI_BT709;
+     avctx->color_trc = AVCOL_TRC_IEC61966_2_1;
+ 
+-- 
+2.52.0
+
+
+From 4a30044c1b9f3c3c5a95114b3b4b9848db89b8f1 Mon Sep 17 00:00:00 2001
+From: 9c5s <98406118+9c5s@users.noreply.github.com>
+Date: Fri, 2 Oct 2026 00:15:40 +0900
+Subject: [PATCH 2/2] tests/fate/video: add NotchLC frame properties test
+
+Check the color properties of a decoded NotchLC frame, so that the
+colorspace tag set by the decoder is covered.
+---
+ tests/fate/video.mak         | 6 +++++-
+ tests/ref/fate/notchlc-probe | 6 ++++++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+ create mode 100644 tests/ref/fate/notchlc-probe
+
+diff --git a/tests/fate/video.mak b/tests/fate/video.mak
+index fa7b202052..cc3b914886 100644
+--- a/tests/fate/video.mak
++++ b/tests/fate/video.mak
+@@ -416,7 +416,11 @@ fate-rv60-72x72: CMD = framecrc -i $(TARGET_SAMPLES)/rv60/test72x72.rmhd -an
+ 
+ fate-rv60: fate-rv60-72x72 fate-rv60-512x512
+ 
++FATE_VIDEO_FFPROBE-$(call DEMDEC, MOV, NOTCHLC) += fate-notchlc-probe
++fate-notchlc-probe: CMD = probeframes -show_entries frame=color_range,color_space,color_primaries,color_transfer $(TARGET_SAMPLES)/notchlc/alpha-ramp.mov
++
+ FATE_VIDEO += $(FATE_VIDEO-yes)
+ 
+ FATE_SAMPLES_FFMPEG += $(FATE_VIDEO)
+-fate-video: $(FATE_VIDEO)
++FATE_SAMPLES_FFPROBE += $(FATE_VIDEO_FFPROBE-yes)
++fate-video: $(FATE_VIDEO) $(FATE_VIDEO_FFPROBE-yes)
+diff --git a/tests/ref/fate/notchlc-probe b/tests/ref/fate/notchlc-probe
+new file mode 100644
+index 0000000000..4e769fd12e
+--- /dev/null
++++ b/tests/ref/fate/notchlc-probe
+@@ -0,0 +1,6 @@
++[FRAME]
++color_range=pc
++color_space=bt470bg
++color_primaries=bt709
++color_transfer=iec61966-2-1
++[/FRAME]
+-- 
+2.52.0
+

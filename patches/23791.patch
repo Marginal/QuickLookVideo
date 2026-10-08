@@ -1,0 +1,397 @@
+From 48315a7690d128d65cb202fcf032774e8a14f302 Mon Sep 17 00:00:00 2001
+From: Joss Gray <joss@jossgray.net>
+Date: Sun, 12 Jul 2026 14:49:49 -0400
+Subject: [PATCH 1/4] avcodec/notchlc: fix alpha block decoding
+
+Alpha ramp blocks read their endpoint pair and selector word once per
+16x16 macroblock and then consumed only three selector bits per 4x4 block,
+so every pixel of a block shared one selector and fifteen of the sixteen
+blocks decoded from the wrong data. Read the 64-bit alpha word inside the
+ramp case, once per 4x4 block, and advance the selector after every
+sample.
+
+The ramp mapping also dropped its divisor: alpha0 + (alpha1 - alpha0) *
+selector scales the endpoint difference by up to seven instead of
+interpolating between the endpoints. Divide by seven, rounding up, as the
+chroma ramps already do.
+
+Write the interpolation as the non-negative weighted sum
+(alpha0 * (7 - selector) + alpha1 * selector + 6) / 7 rather than the
+equivalent difference form. The difference form has a negative dividend
+when alpha1 < alpha0, and C truncation toward zero then inverts the
+round-up convention, so selector 7 reconstructs alpha1 + 1 instead of
+alpha1. The weighted sum rounds up regardless of endpoint ordering and
+reconstructs both endpoints exactly. Both forms are bit-identical for
+alpha0 <= alpha1; the NotchLC Adobe CC plugin was not observed to emit
+descending pairs, so this only affects streams with descending endpoints.
+---
+ libavcodec/notchlc.c | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/libavcodec/notchlc.c b/libavcodec/notchlc.c
+index 396089254e..3d23c4e743 100644
+--- a/libavcodec/notchlc.c
++++ b/libavcodec/notchlc.c
+@@ -298,7 +298,7 @@ static int decode_blocks(AVCodecContext *avctx, AVFrame *p,
+             for (int x = 0; x < avctx->width; x += 16) {
+                 unsigned m = bytestream2_get_le32(gb);
+                 unsigned offset = bytestream2_get_le32(gb);
+-                unsigned alpha0, alpha1;
++                int alpha0, alpha1;
+                 uint64_t control;
+ 
+                 if (offset >= UINT_MAX / 4)
+@@ -308,10 +308,6 @@ static int decode_blocks(AVCodecContext *avctx, AVFrame *p,
+                     return AVERROR_INVALIDDATA;
+ 
+                 bytestream2_seek(&dgb, offset, SEEK_SET);
+-                control = bytestream2_get_le64(&dgb);
+-                alpha0 = control & 0xFF;
+-                alpha1 = (control >> 8) & 0xFF;
+-                control = control >> 16;
+ 
+                 for (int by = 0; by < 4; by++) {
+                     for (int bx = 0; bx < 4; bx++) {
+@@ -331,9 +327,16 @@ static int decode_blocks(AVCodecContext *avctx, AVFrame *p,
+                             }
+                             break;
+                         case 2:
++                            control = bytestream2_get_le64(&dgb);
++                            alpha0 = control & 0xFF;
++                            alpha1 = (control >> 8) & 0xFF;
++                            control >>= 16;
+                             for (int i = 0; i < 4; i++) {
+                                 for (int j = 0; j < 4; j++) {
+-                                    dsta[x + (i + by * 4) * alinesize + bx * 4 + j] = (alpha0 + (alpha1 - alpha0) * (control & 7)) << 4;
++                                    const int selector = control & 7;
++
++                                    dsta[x + (i + by * 4) * alinesize + bx * 4 + j] = ((alpha0 * (7 - selector) + alpha1 * selector + 6) / 7) << 4;
++                                    control >>= 3;
+                                 }
+                             }
+                             break;
+@@ -341,7 +344,6 @@ static int decode_blocks(AVCodecContext *avctx, AVFrame *p,
+                             return AVERROR_INVALIDDATA;
+                         }
+ 
+-                        control >>= 3;
+                         m >>= 2;
+                     }
+                 }
+-- 
+2.52.0
+
+
+From 80d48ed74a1239e77377fcd9bd138c62790e83cb Mon Sep 17 00:00:00 2001
+From: Joss Gray <joss@jossgray.net>
+Date: Fri, 24 Jul 2026 16:06:00 -0400
+Subject: [PATCH 2/4] avcodec/notchlc: harden chroma ramp against descending
+ endpoints
+
+The chroma ramps had the same signed-division flaw as the alpha ramp: with
+u0 + ((u1 - u0) * selector + 2) / 3 the dividend goes negative for u1 < u0,
+and truncation toward zero inverts the round-up convention, so selector 3
+reconstructs u1 + 1 instead of u1.
+
+Use the same non-negative weighted sum, which reconstructs both endpoints
+exactly for all 65536 endpoint pairs and is bit-identical for u0 <= u1.
+udif/vdif become unused and are dropped.
+---
+ libavcodec/notchlc.c | 26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/libavcodec/notchlc.c b/libavcodec/notchlc.c
+index 3d23c4e743..016d39d129 100644
+--- a/libavcodec/notchlc.c
++++ b/libavcodec/notchlc.c
+@@ -364,7 +364,7 @@ static int decode_blocks(AVCodecContext *avctx, AVFrame *p,
+         for (int x = 0; x < avctx->width; x += 16) {
+             unsigned offset = bytestream2_get_le32(&rgb) * 4;
+             int u[16][16] = { 0 }, v[16][16] = { 0 };
+-            int u0, v0, u1, v1, udif, vdif;
++            int u0, v0, u1, v1;
+             unsigned escape, is8x8, loc;
+ 
+             bytestream2_seek(&dgb, s->uv_data_offset + offset, SEEK_SET);
+@@ -382,15 +382,15 @@ static int decode_blocks(AVCodecContext *avctx, AVFrame *p,
+                 v0 = (v0 << 4) | (v0 & 0xF);
+                 u1 = (u1 << 4) | (u1 & 0xF);
+                 v1 = (v1 << 4) | (v1 & 0xF);
+-                udif = u1 - u0;
+-                vdif = v1 - v0;
+ 
+                 for (int i = 0; i < 16; i += 4) {
+                     for (int j = 0; j < 16; j += 4) {
++                        const int selector = loc & 3;
++
+                         for (int ii = 0; ii < 4; ii++) {
+                             for (int jj = 0; jj < 4; jj++) {
+-                                u[i + ii][j + jj] = u0 + ((udif * (int)(loc & 3) + 2) / 3);
+-                                v[i + ii][j + jj] = v0 + ((vdif * (int)(loc & 3) + 2) / 3);
++                                u[i + ii][j + jj] = (u0 * (3 - selector) + u1 * selector + 2) / 3;
++                                v[i + ii][j + jj] = (v0 * (3 - selector) + v1 * selector + 2) / 3;
+                             }
+                         }
+ 
+@@ -410,15 +410,15 @@ static int decode_blocks(AVCodecContext *avctx, AVFrame *p,
+                             v0 = (v0 << 4) | (v0 & 0xF);
+                             u1 = (u1 << 4) | (u1 & 0xF);
+                             v1 = (v1 << 4) | (v1 & 0xF);
+-                            udif = u1 - u0;
+-                            vdif = v1 - v0;
+ 
+                             for (int ii = 0; ii < 8; ii += 2) {
+                                 for (int jj = 0; jj < 8; jj += 2) {
++                                    const int selector = loc & 3;
++
+                                     for (int iii = 0; iii < 2; iii++) {
+                                         for (int jjj = 0; jjj < 2; jjj++) {
+-                                            u[i + ii + iii][j + jj + jjj] = u0 + ((udif * (int)(loc & 3) + 2) / 3);
+-                                            v[i + ii + iii][j + jj + jjj] = v0 + ((vdif * (int)(loc & 3) + 2) / 3);
++                                            u[i + ii + iii][j + jj + jjj] = (u0 * (3 - selector) + u1 * selector + 2) / 3;
++                                            v[i + ii + iii][j + jj + jjj] = (v0 * (3 - selector) + v1 * selector + 2) / 3;
+                                         }
+                                     }
+ 
+@@ -437,13 +437,13 @@ static int decode_blocks(AVCodecContext *avctx, AVFrame *p,
+                                     v0 = (v0 << 4) | (v0 & 0xF);
+                                     u1 = (u1 << 4) | (u1 & 0xF);
+                                     v1 = (v1 << 4) | (v1 & 0xF);
+-                                    udif = u1 - u0;
+-                                    vdif = v1 - v0;
+ 
+                                     for (int iii = 0; iii < 4; iii++) {
+                                         for (int jjj = 0; jjj < 4; jjj++) {
+-                                            u[i + ii + iii][j + jj + jjj] = u0 + ((udif * (int)(loc & 3) + 2) / 3);
+-                                            v[i + ii + iii][j + jj + jjj] = v0 + ((vdif * (int)(loc & 3) + 2) / 3);
++                                            const int selector = loc & 3;
++
++                                            u[i + ii + iii][j + jj + jjj] = (u0 * (3 - selector) + u1 * selector + 2) / 3;
++                                            v[i + ii + iii][j + jj + jjj] = (v0 * (3 - selector) + v1 * selector + 2) / 3;
+ 
+                                             loc >>= 2;
+                                         }
+-- 
+2.52.0
+
+
+From 16048a828cac431e77bf98422e67916fffc4810d Mon Sep 17 00:00:00 2001
+From: Joss Gray <joss@jossgray.net>
+Date: Fri, 24 Jul 2026 16:18:09 -0400
+Subject: [PATCH 3/4] avcodec/notchlc: fix alpha ramp range expansion
+
+Ramp blocks interpolated the 8-bit endpoints and expanded the result with a
+plain << 4, so full opacity decoded to 4080 while case 1 blocks emit 4095.
+Fully opaque regions therefore showed a seam wherever the encoder switched
+block type.
+
+Expand the endpoints with (a << 4) | (a >> 4) before interpolating and drop the
+trailing shift. Full opacity now reconstructs as 4095, and interpolating at 12
+bits instead of quantising to 256 levels first also lowers the error against
+the source.
+
+Repeating the high nibble is the conventional 8->12 bit expansion and is what
+proresdec.c uses for alpha. The chroma ramps in this decoder repeat the low
+nibble instead. This differs from a * 4095 / 255, rounded to the nearest
+integer, by up to 14 in either direction. No public NotchLC bitstream
+reference documents the mapping, but
+measuring against the source frames of encodes made with the NotchLC Adobe CC
+plugin, mean alpha error over 1.2M ramp pixels is 1.451 with the high nibble
+and 4.616 with the low nibble, and the low nibble form leaves a residual that
+tracks the source value's low nibble. The chroma path measures the same way and
+is left for a separate patch.
+---
+ libavcodec/notchlc.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/libavcodec/notchlc.c b/libavcodec/notchlc.c
+index 016d39d129..b520f9a9ea 100644
+--- a/libavcodec/notchlc.c
++++ b/libavcodec/notchlc.c
+@@ -330,12 +330,14 @@ static int decode_blocks(AVCodecContext *avctx, AVFrame *p,
+                             control = bytestream2_get_le64(&dgb);
+                             alpha0 = control & 0xFF;
+                             alpha1 = (control >> 8) & 0xFF;
++                            alpha0 = (alpha0 << 4) | (alpha0 >> 4);
++                            alpha1 = (alpha1 << 4) | (alpha1 >> 4);
+                             control >>= 16;
+                             for (int i = 0; i < 4; i++) {
+                                 for (int j = 0; j < 4; j++) {
+                                     const int selector = control & 7;
+ 
+-                                    dsta[x + (i + by * 4) * alinesize + bx * 4 + j] = ((alpha0 * (7 - selector) + alpha1 * selector + 6) / 7) << 4;
++                                    dsta[x + (i + by * 4) * alinesize + bx * 4 + j] = (alpha0 * (7 - selector) + alpha1 * selector + 6) / 7;
+                                     control >>= 3;
+                                 }
+                             }
+-- 
+2.52.0
+
+
+From 09362181f99b871ff7709d1c14335afe684a5578 Mon Sep 17 00:00:00 2001
+From: Joss Gray <joss@jossgray.net>
+Date: Fri, 24 Jul 2026 16:22:36 -0400
+Subject: [PATCH 4/4] tests/fate: add NotchLC decoder tests
+
+NotchLC had no coverage at all. Add five framemd5 tests covering the alpha
+block types, the chroma ramp paths and non-multiple-of-16 dimensions.
+
+alpha-ramp, alpha-ramp-oddsize and chroma-alpha fail against the decoder
+as it stood before the recent alpha fixes. alpha-blocks and
+alpha-macroblocks exercise only the opaque and transparent block types and
+are plain regression guards.
+
+The tests use framemd5 rather than framecrc because alpha-blocks.mov and
+alpha-macroblocks.mov both produce framecrc 0xd37626e8 despite their
+different spatial arrangements, while their MD5s differ. A framecrc
+reference would therefore not tell the two patterns apart.
+
+The samples are synthetic patterns encoded with the NotchLC Adobe CC
+plugin and still need uploading to fate-suite under notchlc/.
+
+The Forgejo Fairy review of PR #23791 found that native byte order makes
+all five NotchLC test references fail on big-endian hosts.
+
+Select yuva444p12le and use an explicit scale filter because FATE disables
+automatic conversion. Require SCALE_FILTER when selecting these tests.
+
+All five tests pass on AArch64 with the existing references. They are
+excluded when SCALE_FILTER is disabled.
+
+Assisted-by: Fairy
+---
+ tests/Makefile                            |  1 +
+ tests/fate/notchlc.mak                    | 19 +++++++++++++++++++
+ tests/ref/fate/notchlc-alpha-blocks       | 10 ++++++++++
+ tests/ref/fate/notchlc-alpha-macroblocks  | 10 ++++++++++
+ tests/ref/fate/notchlc-alpha-ramp         | 10 ++++++++++
+ tests/ref/fate/notchlc-alpha-ramp-oddsize | 10 ++++++++++
+ tests/ref/fate/notchlc-chroma-alpha       | 10 ++++++++++
+ 7 files changed, 70 insertions(+)
+ create mode 100644 tests/fate/notchlc.mak
+ create mode 100644 tests/ref/fate/notchlc-alpha-blocks
+ create mode 100644 tests/ref/fate/notchlc-alpha-macroblocks
+ create mode 100644 tests/ref/fate/notchlc-alpha-ramp
+ create mode 100644 tests/ref/fate/notchlc-alpha-ramp-oddsize
+ create mode 100644 tests/ref/fate/notchlc-chroma-alpha
+
+diff --git a/tests/Makefile b/tests/Makefile
+index bd83c8df91..a5cc6c6383 100644
+--- a/tests/Makefile
++++ b/tests/Makefile
+@@ -229,6 +229,7 @@ include $(SRC_PATH)/tests/fate/mpeg4.mak
+ include $(SRC_PATH)/tests/fate/mpegps.mak
+ include $(SRC_PATH)/tests/fate/mpegts.mak
+ include $(SRC_PATH)/tests/fate/mxf.mak
++include $(SRC_PATH)/tests/fate/notchlc.mak
+ include $(SRC_PATH)/tests/fate/ogg-vorbis.mak
+ include $(SRC_PATH)/tests/fate/ogg-flac.mak
+ include $(SRC_PATH)/tests/fate/ogg-opus.mak
+diff --git a/tests/fate/notchlc.mak b/tests/fate/notchlc.mak
+new file mode 100644
+index 0000000000..8033dec3ef
+--- /dev/null
++++ b/tests/fate/notchlc.mak
+@@ -0,0 +1,19 @@
++FATE_NOTCHLC += fate-notchlc-alpha-ramp
++fate-notchlc-alpha-ramp: CMD = framemd5 -i $(TARGET_SAMPLES)/notchlc/alpha-ramp.mov -pix_fmt yuva444p12le -vf scale
++
++FATE_NOTCHLC += fate-notchlc-alpha-blocks
++fate-notchlc-alpha-blocks: CMD = framemd5 -i $(TARGET_SAMPLES)/notchlc/alpha-blocks.mov -pix_fmt yuva444p12le -vf scale
++
++FATE_NOTCHLC += fate-notchlc-alpha-macroblocks
++fate-notchlc-alpha-macroblocks: CMD = framemd5 -i $(TARGET_SAMPLES)/notchlc/alpha-macroblocks.mov -pix_fmt yuva444p12le -vf scale
++
++FATE_NOTCHLC += fate-notchlc-alpha-ramp-oddsize
++fate-notchlc-alpha-ramp-oddsize: CMD = framemd5 -i $(TARGET_SAMPLES)/notchlc/alpha-ramp-500x300.mov -pix_fmt yuva444p12le -vf scale
++
++FATE_NOTCHLC += fate-notchlc-chroma-alpha
++fate-notchlc-chroma-alpha: CMD = framemd5 -i $(TARGET_SAMPLES)/notchlc/chroma-alpha.mov -pix_fmt yuva444p12le -vf scale
++
++FATE_NOTCHLC-$(call FRAMEMD5, MOV, NOTCHLC, SCALE_FILTER) += $(FATE_NOTCHLC)
++
++FATE_SAMPLES_FFMPEG += $(FATE_NOTCHLC-yes)
++fate-notchlc: $(FATE_NOTCHLC-yes)
+diff --git a/tests/ref/fate/notchlc-alpha-blocks b/tests/ref/fate/notchlc-alpha-blocks
+new file mode 100644
+index 0000000000..e38ca1f8e1
+--- /dev/null
++++ b/tests/ref/fate/notchlc-alpha-blocks
+@@ -0,0 +1,10 @@
++#format: frame checksums
++#version: 2
++#hash: MD5
++#tb 0: 1001/30000
++#media_type 0: video
++#codec_id 0: rawvideo
++#dimensions 0: 512x512
++#sar 0: 0/1
++#stream#, dts,        pts, duration,     size, hash
++0,          0,          0,        1,  2097152, 67bd65546c55ffbd1a64b7f9492a42fb
+diff --git a/tests/ref/fate/notchlc-alpha-macroblocks b/tests/ref/fate/notchlc-alpha-macroblocks
+new file mode 100644
+index 0000000000..cea7275da7
+--- /dev/null
++++ b/tests/ref/fate/notchlc-alpha-macroblocks
+@@ -0,0 +1,10 @@
++#format: frame checksums
++#version: 2
++#hash: MD5
++#tb 0: 1001/30000
++#media_type 0: video
++#codec_id 0: rawvideo
++#dimensions 0: 512x512
++#sar 0: 0/1
++#stream#, dts,        pts, duration,     size, hash
++0,          0,          0,        1,  2097152, 640574a89b3940be667ed53d248d3f53
+diff --git a/tests/ref/fate/notchlc-alpha-ramp b/tests/ref/fate/notchlc-alpha-ramp
+new file mode 100644
+index 0000000000..c861dbc17d
+--- /dev/null
++++ b/tests/ref/fate/notchlc-alpha-ramp
+@@ -0,0 +1,10 @@
++#format: frame checksums
++#version: 2
++#hash: MD5
++#tb 0: 1001/30000
++#media_type 0: video
++#codec_id 0: rawvideo
++#dimensions 0: 512x512
++#sar 0: 0/1
++#stream#, dts,        pts, duration,     size, hash
++0,          0,          0,        1,  2097152, b4f2fc126dd4b69c536d8b606273386c
+diff --git a/tests/ref/fate/notchlc-alpha-ramp-oddsize b/tests/ref/fate/notchlc-alpha-ramp-oddsize
+new file mode 100644
+index 0000000000..0333c8c808
+--- /dev/null
++++ b/tests/ref/fate/notchlc-alpha-ramp-oddsize
+@@ -0,0 +1,10 @@
++#format: frame checksums
++#version: 2
++#hash: MD5
++#tb 0: 1001/30000
++#media_type 0: video
++#codec_id 0: rawvideo
++#dimensions 0: 500x300
++#sar 0: 0/1
++#stream#, dts,        pts, duration,     size, hash
++0,          0,          0,        1,  1200000, 24e3f542b4fee8fe1cbe6805f1979eb0
+diff --git a/tests/ref/fate/notchlc-chroma-alpha b/tests/ref/fate/notchlc-chroma-alpha
+new file mode 100644
+index 0000000000..5ec3d5587c
+--- /dev/null
++++ b/tests/ref/fate/notchlc-chroma-alpha
+@@ -0,0 +1,10 @@
++#format: frame checksums
++#version: 2
++#hash: MD5
++#tb 0: 1001/30000
++#media_type 0: video
++#codec_id 0: rawvideo
++#dimensions 0: 512x512
++#sar 0: 0/1
++#stream#, dts,        pts, duration,     size, hash
++0,          0,          0,        1,  2097152, 51b012d44f2e69bce68bafb7261923e9
+-- 
+2.52.0
+
