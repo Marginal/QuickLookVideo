@@ -193,11 +193,18 @@ class VideoSampleCursor: SampleCursor {
     // whether any sample later in decode order than the current sample can have an earlier presentation time than the current sample of the specified cursor
     override func samplesWithLaterDTSsMayHaveEarlierPTSs(than cursor: any MESampleCursor) -> Bool {
 
+        let other = cursor as! SampleCursor
         guard let demuxer, let track = track as? VideoTrackReader,
             track.maxBFrames > 0  // no B frames -> frames are in order
-        else { return false }
+        else {
+            if TRACE_SAMPLE_CURSOR {
+                logger.debug(
+                    "\(self.debugDescription, privacy: .public) samplesWithLaterDTSsMayHaveEarlierPTSs than \(other.debugDescription, privacy: .public) = false (no B frames)"
+                )
+            }
+            return false
+        }
 
-        let other = cursor as! SampleCursor
         assert(self.handle.index > other.handle.index)
         if let otherPkt = demuxer.get(stream: other.streamIndex, handle: other.handle) {
             // Scan forward up to and including the next keyframe

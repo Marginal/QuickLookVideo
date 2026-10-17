@@ -318,22 +318,24 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
     }
 
     // whether any sample earlier in decode order than the current sample can have a later presentation time than the current sample of the specified cursor
+    // Overridden for video tracks
     func samplesWithEarlierDTSsMayHaveLaterPTSs(than cursor: any MESampleCursor) -> Bool {
         let cursor = cursor as! SampleCursor
         if TRACE_SAMPLE_CURSOR {
             logger.debug(
-                "\(self.debugDescription, privacy: .public) samplesWithEarlierDTSsMayHaveLaterPTSs than SampleCursor \(cursor.debugDescription, privacy: .public)"
+                "\(self.debugDescription, privacy: .public) samplesWithEarlierDTSsMayHaveLaterPTSs than SampleCursor \(cursor.debugDescription, privacy: .public): false"
             )
         }
         return false
     }
 
     // whether any sample later in decode order than the current sample can have an earlier presentation time than the current sample of the specified cursor
+    // Not called in practice, so not overridden for video tracks
     func samplesWithLaterDTSsMayHaveEarlierPTSs(than cursor: any MESampleCursor) -> Bool {
         let cursor = cursor as! SampleCursor
         if TRACE_SAMPLE_CURSOR {
             logger.debug(
-                "\(self.debugDescription, privacy: .public) samplesWithLaterDTSsMayHaveEarlierPTSs than SampleCursor \(cursor.debugDescription, privacy: .public)"
+                "\(self.debugDescription, privacy: .public) samplesWithLaterDTSsMayHaveEarlierPTSs than SampleCursor \(cursor.debugDescription, privacy: .public): false"
             )
         }
         return false
