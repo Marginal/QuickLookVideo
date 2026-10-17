@@ -9,6 +9,12 @@ import Foundation
 import MediaExtension
 import OSLog
 
+#if DEBUG
+    let SOFTWARE_DECODE = false
+#else
+    let SOFTWARE_DECODE = false
+#endif
+
 class VideoTrackReader: TrackReader, METrackReader {
 
     // See https://github.com/FFmpeg/FFmpeg/blob/master/libavformat/matroska.c for the codec_ids that FFmpeg expects in a Matroska container
@@ -318,7 +324,7 @@ class VideoTrackReader: TrackReader, METrackReader {
             break
         }
 
-        if codecType == nil {
+        if SOFTWARE_DECODE || codecType == nil {
             // macOS can't decode - check whether FFmpeg has a decoder
             guard avcodec_find_decoder(params.pointee.codec_id) != nil else {
                 logger.error(
