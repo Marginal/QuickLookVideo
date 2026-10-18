@@ -72,8 +72,16 @@ class VideoDecoder: NSObject, MEVideoDecoder {
     let manager: MEVideoDecoderPixelBufferManager
 
     // properties
-    var isReadyForMoreMediaData: Bool = true
     var actualThreadCount: Int { return Int(dec_ctx?.pointee.thread_count ?? 0) }
+    var contentHasInterframeDependencies: Bool {
+        let Bframes = dec_ctx?.pointee.has_b_frames ?? 0 > 0  // actually property of decoder rather than content
+        if TRACE_VIDEODECODER { logger.debug("VideoDecoder contentHasInterframeDependencies = \(Bframes)") }
+        return Bframes
+    }
+    var isReadyForMoreMediaData: Bool {
+        if TRACE_VIDEODECODER { logger.debug("VideoDecoder isReadyForMoreMediaData = true") }
+        return true  // Let the demuxer queue as much as it likes
+    }
 
     var params = avcodec_parameters_alloc()!
     var dec_ctx: UnsafeMutablePointer<AVCodecContext>?
@@ -472,14 +480,28 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             av_frame_free(&frame)
             return completionHandler(nil, .frameDropped, MEError(.internalFailure))
         }
+        do {
+            let pixelBuffer = try convertFrame(&frame!)
+            av_frame_free(&frame)
+            return completionHandler(pixelBuffer, [], nil)
+        } catch {
+            av_frame_free(&frame)
+            return completionHandler(nil, .frameDropped, error)
+        }
+    }
 
+    // MARK: - Frame conversion
+
+    private func convertFrame(_ frame: inout UnsafeMutablePointer<AVFrame>) throws -> CVPixelBuffer {
         // Fix up color info on the decoded frame
-        VideoDecoder.fixupColors(frame: frame!)
+        VideoDecoder.fixupColors(frame: frame)
 
+        let dts = frame.pointee.pkt_dts
+        let pts = frame.pointee.pts
         var pixelBuffer: CVPixelBuffer
         do {
             // Only update manager.pixelBufferAttributes if frame properties have changed since the last frame
-            let newKey = PixelBufferCacheKey(frame: frame!)
+            let newKey = PixelBufferCacheKey(frame: frame)
             if newKey != pixelBufferKey {
                 pixelBufferKey = newKey
                 pixelBufferConfig = makePixelBufferConfig()
@@ -488,65 +510,57 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             pixelBuffer = try manager.makePixelBuffer()
         } catch {
             logger.error(
-                "VideoDecoder at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public) decodeFrame: Failed to obtain a pixel buffer: \(error.localizedDescription, privacy: .public)"
+                "VideoDecoder at dts:\(dts, privacy: .public) pts:\(pts, privacy: .public) decodeFrame: Failed to obtain a pixel buffer: \(error.localizedDescription, privacy: .public)"
             )
-            return completionHandler(nil, .frameDropped, error)
+            throw error
         }
 
         // HDR passthrough: shift and interleave into biplanar pixel buffer
         if pixelBufferConfig!.isHDR {
-            if let error = hdrConvertToBiPlanar(frame: frame!, pixelBuffer: pixelBuffer) {
+            if let error = hdrConvertToBiPlanar(frame: frame, pixelBuffer: pixelBuffer) {
                 logger.error(
-                    "VideoDecoder at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public) decodeFrame: HDR conversion failed: \(error.localizedDescription, privacy: .public)"
+                    "VideoDecoder at dts:\(dts, privacy: .public) pts:\(pts, privacy: .public) decodeFrame: HDR conversion failed: \(error.localizedDescription, privacy: .public)"
                 )
-                av_frame_free(&frame)
-                return completionHandler(nil, .frameDropped, error)
+                throw error
             }
-            av_frame_free(&frame)
-            return completionHandler(pixelBuffer, [], nil)
+            return pixelBuffer
         }
 
         // can we use macOS's accelerated conversions?
-        if let error = vImageConvertToBGRA(frame: &frame!.pointee, pixelBuffer: &pixelBuffer) {
+        if let error = vImageConvertToBGRA(frame: &frame.pointee, pixelBuffer: &pixelBuffer) {
             if error.errorCode != kvImageUnsupportedConversion {
                 logger.error(
-                    "VideoDecoder at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public) decodeFrame: vImage conversion failed: \(error.localizedDescription, privacy: .public)"
+                    "VideoDecoder at dts:\(dts, privacy: .public) pts:\(pts, privacy: .public) decodeFrame: vImage conversion failed: \(error.localizedDescription, privacy: .public)"
                 )
-                av_frame_free(&frame)
-                return completionHandler(nil, .frameDropped, error)
+                throw error
             }
         } else {
-            av_frame_free(&frame)
-            return completionHandler(pixelBuffer, [], nil)
+            return pixelBuffer
         }
 
-        if let error = RGBConvertToBGRA(frame: &frame!.pointee, pixelBuffer: &pixelBuffer) {
+        if let error = RGBConvertToBGRA(frame: &frame.pointee, pixelBuffer: &pixelBuffer) {
             if error.errorCode != kCVReturnUnsupported {
                 logger.error(
-                    "VideoDecoder at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public) decodeFrame: RGB conversion failed: \(error.localizedDescription, privacy: .public)"
+                    "VideoDecoder at dts:\(dts, privacy: .public) pts:\(pts, privacy: .public) decodeFrame: RGB conversion failed: \(error.localizedDescription, privacy: .public)"
                 )
-                av_frame_free(&frame)
-                return completionHandler(nil, .frameDropped, error)
+                throw error
             }
         } else {
-            av_frame_free(&frame)
-            return completionHandler(pixelBuffer, [], nil)
+            return pixelBuffer
         }
 
         // Fall back to zscale conversion. Should work for pretty-much any source format.
         var error = zscaleConvertToGBRP(frame: &frame, pixelBuffer: &pixelBuffer)
         if error == nil {
-            error = vImageCopyToBGRA(frame: &frame!.pointee, pixelBuffer: &pixelBuffer)
+            error = vImageCopyToBGRA(frame: &frame.pointee, pixelBuffer: &pixelBuffer)
         }
         guard error == nil else {
             logger.error(
-                "VideoDecoder at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public) decodeFrame: zScale conversion failed: \(error!.localizedDescription, privacy: .public)"
+                "VideoDecoder at dts:\(dts, privacy: .public) pts:\(pts, privacy: .public) decodeFrame: zScale conversion failed: \(error!.localizedDescription, privacy: .public)"
             )
-            av_frame_free(&frame)
-            return completionHandler(nil, .frameDropped, error)
+            throw error!
         }
-        av_frame_free(&frame)
-        return completionHandler(pixelBuffer, [], nil)
+        return pixelBuffer
     }
 
     // Infer color info from the decoded frame. Make educated guesses for unspecified values.

@@ -14,12 +14,12 @@ import MediaExtension
 extension VideoDecoder {
 
     // Convert the decoded frame to GBRP float or 8bit depending on whether it's HDR or SDR, return the new frame
-    func zscaleConvertToGBRP(frame: inout UnsafeMutablePointer<AVFrame>?, pixelBuffer: inout CVPixelBuffer) -> Error? {
+    func zscaleConvertToGBRP(frame: inout UnsafeMutablePointer<AVFrame>, pixelBuffer: inout CVPixelBuffer) -> Error? {
 
         // frame color fields should already be patched by fixupColors() in decodeFrame
 
         if filterGraph == nil {
-            let error = zscaleSetup(frame: &frame!.pointee, pixelBuffer: &pixelBuffer)
+            let error = zscaleSetup(frame: &frame.pointee, pixelBuffer: &pixelBuffer)
             guard error == nil else { return error! }
         }
 
@@ -36,7 +36,7 @@ extension VideoDecoder {
         }
         var old: UnsafeMutablePointer<AVFrame>? = frame
         av_frame_free(&old)
-        frame = outFrame
+        frame = outFrame!
 
         return nil
     }
