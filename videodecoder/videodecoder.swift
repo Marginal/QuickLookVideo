@@ -734,6 +734,7 @@ class VideoDecoder: NSObject, MEVideoDecoder {
                         kCVPixelBufferBytesPerRowAlignmentKey as String: 64 as CFNumber,
                         kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
                         kCVPixelBufferIOSurfacePropertiesKey as String: [:] as CFDictionary,
+                        kCVPixelBufferMetalCompatibilityKey as String: kCFBooleanTrue as CFBoolean,
                         kCVBufferPropagatedAttachmentsKey as String: [
                             kCVImageBufferColorPrimariesKey as String: kCVImageBufferColorPrimaries_ITU_R_709_2,
                             kCVImageBufferTransferFunctionKey as String: kCVImageBufferTransferFunction_sRGB,
