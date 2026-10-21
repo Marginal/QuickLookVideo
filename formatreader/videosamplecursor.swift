@@ -37,7 +37,7 @@ class VideoSampleCursor: SampleCursor {
 
         // Arrange for CoreMedia to free the packet data when no longer needed.
         // See CMBlockBufferCustomBlockSource in CMBlockBuffer.h for why we're constructing this on the fly
-        let dataPkt = av_packet_clone(pkt)
+        var dataPkt = av_packet_clone(pkt)
         var blockSource = CMBlockBufferCustomBlockSource(
             version: 0,
             AllocateBlock: nil,
@@ -67,6 +67,7 @@ class VideoSampleCursor: SampleCursor {
             logger.error(
                 "\(self.debugDescription, privacy: .public) loadSampleBufferContainingSamples to \(endPresentationTimeStamp, privacy: .public): CMBlockBufferCreateWithMemoryBlock returned \(error, privacy:.public)"
             )
+            av_packet_free(&dataPkt)
             return completionHandler(nil, error)
         }
 

@@ -189,7 +189,7 @@ class AudioSampleCursor: SampleCursor {
 
                     // Arrange for CoreMedia to free the frame data when no longer needed.
                     // See CMBlockBufferCustomBlockSource in CMBlockBuffer.h for why we're constructing this on the fly
-                    let dataFrame = av_frame_clone(frame)
+                    var dataFrame = av_frame_clone(frame)
                     var blockSource = CMBlockBufferCustomBlockSource(
                         version: 0,
                         AllocateBlock: nil,
@@ -217,6 +217,7 @@ class AudioSampleCursor: SampleCursor {
                         logger.error(
                             "\(self.debugDescription, privacy: .public) loadSampleBufferContainingSamples to \(endSampleCursor.debugDescription, privacy: .public): CMBlockBufferCreateWithMemoryBlock returned \(error, privacy:.public)"
                         )
+                        av_frame_free(&dataFrame)
                         return completionHandler(nil, error)
                     }
                 }
