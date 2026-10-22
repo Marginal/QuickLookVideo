@@ -78,10 +78,7 @@ class VideoDecoder: NSObject, MEVideoDecoder {
         if TRACE_VIDEODECODER { logger.debug("VideoDecoder contentHasInterframeDependencies = \(Bframes)") }
         return Bframes
     }
-    var isReadyForMoreMediaData: Bool {
-        if TRACE_VIDEODECODER { logger.debug("VideoDecoder isReadyForMoreMediaData = true") }
-        return true  // Let the demuxer queue as much as it likes
-    }
+    var isReadyForMoreMediaData = true  // Let the demuxer queue as much as it likes
 
     var params = avcodec_parameters_alloc()!
     var dec_ctx: UnsafeMutablePointer<AVCodecContext>?
@@ -107,6 +104,19 @@ class VideoDecoder: NSObject, MEVideoDecoder {
     var filterGraph: UnsafeMutablePointer<AVFilterGraph>? = nil
     var src_ctx: UnsafeMutablePointer<AVFilterContext>? = nil
     var sink_ctx: UnsafeMutablePointer<AVFilterContext>? = nil
+
+    // For managing pending requests
+    private let decoderQueue = DispatchQueue(label: "uk.org.marginal.qlvideo.videodecoder", qos: .userInitiated)
+    var inFlight: [Int64: @Sendable (CVImageBuffer?, MEDecodeFrameStatus, (any Error)?) -> Void] = [:]  // output completionHandlers ordered by PTS
+    var nextIndex: Int64? = nil
+
+    // For draining inFlight packets
+    var watchdog: DispatchSourceTimer?
+    var baselineDTS: CMTime = .zero
+    var baselineTime = DispatchTime.now()
+    var lastPacketTime = DispatchTime.now()  // timestamp of last call to decodeFrame
+
+    // MARK: - init: parse CMVideoFormatDescription
 
     init(
         codecType: CMVideoCodecType,
@@ -335,21 +345,133 @@ class VideoDecoder: NSObject, MEVideoDecoder {
         vImageFreeScaleBuffers()
     }
 
-    // Primary business of this codec
+    // MARK: - Primary business of this codec
+
+    //
+    // Observed behaviour / assumptions:
+    // - The MEVideoDecoder API assumes that over time number of input sampleBuffers == number of output CVImageBuffers.
+    // - After the first sampleBuffer, AVFoundation will call decodeFrame with samples/packets in decodeTimeStamp order, and in
+    //   one of two modes:- Either a batch of ~850ms worth of packets, or one packet at a time. AVFoundation may start in one
+    //   mode and switch to the other. Trying to be power efficient?
+    // - Before issuing a seek AVFoundation will pause sending sampleBuffers until all outstanding requests are completed
+    //   (i.e. inFlight must be drained).
+    // - The first sampleBuffer after a seek will be marked with kCMSampleBufferAttachmentKey_ResetDecoderBeforeDecoding and
+    //   maybe kCMSampleAttachmentKey_DisplayImmediately. If DisplayImmediately is set AVFoundation won't call decodeFrame again
+    //   'til we return a pixelBuffer.
+    // - Initially these sampleBuffers may be marked as discardable until AVFoundation reaches the desired seek point.
+    // - The first non-discardable sampleBuffer after one or more discardable sampleBuffers must return a pixelBuffer.
+    // - There are two ways of indicating that a sampleBuffer should be discarded - MEDecodeFrameOptions.doNotOutputFrame and
+    //   kCMSampleAttachmentKey_DoNotDisplay. Mostly they agree, but sometimes .doNotOutputFrame==false while
+    //   kCMSampleAttachmentKey_DoNotDisplay==true. We use MEDecodeFrameOptions.doNotOutputFrame.
+    // - FFmpeg emits frames in PTS order. When the stream contains B frames we need to match up the emitted frame's
+    //   best_effort_timestamp PTS value with the completionHandler associated with the input sampleBuffer that had the
+    //   corresponding presentationTimeStamp (stored in inFlight).
+    //
 
     func decodeFrame(
         from sampleBuffer: CMSampleBuffer,
         options: MEDecodeFrameOptions,
         completionHandler: @escaping @Sendable (CVImageBuffer?, MEDecodeFrameStatus, (any Error)?) -> Void
     ) {
+        let attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false)! as NSArray
+        let attachment = attachments.firstObject as! NSDictionary
 
-        // Get access to the sample buffer's data and attachments
+        if TRACE_VIDEODECODER {
+            let now = DispatchTime.now()
+            let delay: UInt64 = (now.uptimeNanoseconds - lastPacketTime.uptimeNanoseconds) / 1_000_000
+            logger.debug(
+                "VideoDecoder decodeFrame <- dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public) index:\(attachment["QLVideoIndex" as CFString] as? Int64 ?? -1) flags:\((attachment[kCMSampleAttachmentKey_NotSync] as? Bool) ?? false ? "_" : "K", privacy: .public)\(options.doNotOutputFrame ? "D" : "_", privacy: .public)_ \(sampleBuffer.attachments[.resetDecoderBeforeDecoding]?.value as? Bool ?? false ? "Reset" : "", privacy: .public) \((sampleBuffer.attachments[.resumeOutput]?.value as? Int ?? 0 > 0) ? "Resume" : "", privacy: .public) \(sampleBuffer.attachments[.drainAfterDecoding]?.value as? Bool ?? false ? "Drain" : "", privacy: .public) \((attachment[kCMSampleAttachmentKey_DisplayImmediately] as? Bool) ?? false ? "Immediate" : "", privacy: .public) \((attachment[kCMSampleAttachmentKey_DoNotDisplay] as? Bool) ?? false ? "DoNotDisplay" : "", privacy: .public) \(delay)ms"
+            )
+            lastPacketTime = now
+        }
 
+        assert(sampleBuffer.numSamples == 1, "Unexpected \(sampleBuffer.numSamples) samples")
+        assert(sampleBuffer.decodeTimeStamp.isNumeric, "Non-numeric dts:\(sampleBuffer.decodeTimeStamp)")
+        assert(sampleBuffer.presentationTimeStamp.isNumeric, "Non-numeric pts:\(sampleBuffer.presentationTimeStamp)")
+        assert(sampleBuffer.duration.isNumeric && sampleBuffer.duration.value > 0, "Non-numeric duration:\(sampleBuffer.duration)")
+        assert(
+            sampleBuffer.decodeTimeStamp.timescale == sampleBuffer.duration.timescale,
+            "Mismatched timescales dts:\(sampleBuffer.decodeTimeStamp) duration:\(sampleBuffer.duration)"
+        )
+
+        // Input samples/packets are already serialised on VTRemoteDecoderInstanceXPC's "vtdecoder-async-handler-queue-NNN",
+        // but since we don't have a reference to that queue we use our own DispatchQueue to handle serialisation between
+        // calls to decodeFrame and watchdog timeouts
+        decoderQueue.async { [weak self] in
+            guard let self else { return completionHandler(nil, .frameDropped, MEError(.internalFailure)) }
+
+            // Cancel any pending watchdog
+            watchdog?.cancel()
+            watchdog = nil
+
+            // Older formats can have packet durations inconsistent with actual packet spacing, missing packets, etc, which makes
+            // it difficult to order the incoming packets.
+            // So for formats that we demux, prefer our explicit monotonically increasing index.
+            let index = attachment["QLVideoIndex" as CFString] as? Int64
+
+            // Discontinuous seek
+            if nextIndex == nil  // Can be seen with e.g. SVQ1 in .mov, where a new decoder is instantiated mid stream
+                || sampleBuffer.attachments[.resetDecoderBeforeDecoding]?.value as? Bool ?? false
+            {
+                // Rebase watchdog
+                baselineTime = DispatchTime.now()
+                baselineDTS = sampleBuffer.decodeTimeStamp
+
+                // Cancel everything
+                assert(inFlight.count == 0, "Discontinuous seek with pending requests inFlight=\(self.inFlight.count)")
+                while let req = self.inFlight.popFirst() { req.value(nil, .frameDropped, MEError(.parsingFailure)) }
+                nextIndex = index ?? sampleBuffer.decodeTimeStamp.value
+                avcodec_flush_buffers(dec_ctx)  // Flush codec
+            }
+
+            // Queue completionHandler for this item
+            assert(
+                index ?? sampleBuffer.decodeTimeStamp.value <= nextIndex!,
+                "Packet out of order \(index ?? sampleBuffer.decodeTimeStamp.value) > \(nextIndex!)"
+            )
+            inFlight[sampleBuffer.presentationTimeStamp.value] = completionHandler
+
+            // Decode
+            decodeOne(sampleBuffer: sampleBuffer, options: options)
+            nextIndex = index != nil ? index! + 1 : sampleBuffer.decodeTimeStamp.value + sampleBuffer.duration.value + 1
+
+            // Ensure that the decode pipeline is drained if it becomes stalled pending a seek
+            if sampleBuffer.attachments[.drainAfterDecoding]?.value as? Bool ?? false {  // Sadly this is never set in practice
+                while let req = self.inFlight.popFirst() { req.value(nil, .frameDropped, nil) }
+            } else if inFlight.count > 0 {
+                let timer = DispatchSource.makeTimerSource(queue: decoderQueue)  // have to re-create since we can't re-use after .cancel
+                timer.setEventHandler(handler: { [weak self] in
+                    guard let self else { return }
+                    if TRACE_VIDEODECODER { logger.debug("VideoDecoder draining \(inFlight.count) frames") }
+                    while let req = self.inFlight.popFirst() { req.value(nil, .frameDropped, nil) }
+                })
+                let durationMS = Int(sampleBuffer.duration.seconds * 1000.0)
+                let offsetMS: Int = Int(CMTimeSubtract(sampleBuffer.decodeTimeStamp, baselineDTS).seconds * 1000.0)
+                let expected = max(
+                    DispatchTime.now(),  // Don't set in the past if decode is not keeping up
+                    baselineTime.advanced(by: .milliseconds(offsetMS))
+                )
+                timer.schedule(deadline: expected.advanced(by: .milliseconds(3 * durationMS)), leeway: .milliseconds(durationMS))
+                timer.resume()
+                watchdog = timer
+            }
+        }
+
+    }
+
+    // MARK: - Decode one packet
+
+    private func decodeOne(
+        sampleBuffer: CMSampleBuffer,
+        options: MEDecodeFrameOptions,
+    ) {
+        assert(inFlight[sampleBuffer.presentationTimeStamp.value] != nil, "VideoDecoder decodeFrame: Overrun")
         guard let blockBuffer = sampleBuffer.dataBuffer, blockBuffer.isEmpty == false, blockBuffer.isContiguous else {
             logger.error(
                 "VideoDecoder at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public) decodeFrame: Supplied sample data is not contiguous"
             )
-            return completionHandler(nil, .frameDropped, MEError(.internalFailure))
+            let completionHandler = inFlight.removeValue(forKey: sampleBuffer.presentationTimeStamp.value)!
+            return completionHandler(nil, .frameDropped, MEError(.invalidParameter))
         }
         var totalLength: Int = 0
         var data: UnsafeMutablePointer<Int8>?
@@ -364,7 +486,8 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             logger.error(
                 "VideoDecoder at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public) decodeFrame: Failed to get sample data:  \(status)"
             )
-            return completionHandler(nil, .frameDropped, MEError(.internalFailure))
+            let completionHandler = inFlight.removeValue(forKey: sampleBuffer.presentationTimeStamp.value)!
+            return completionHandler(nil, .frameDropped, MEError(.invalidParameter))
         }
         let attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false)! as NSArray
         let attachment = attachments.firstObject as! NSDictionary
@@ -374,14 +497,10 @@ class VideoDecoder: NSObject, MEVideoDecoder {
         var pkt = av_packet_alloc()
         pkt!.pointee.data = UnsafeMutableRawPointer(data!).assumingMemoryBound(to: UInt8.self)
         pkt!.pointee.size = Int32(totalLength)
-        pkt!.pointee.time_base = AVRational(
-            num: 1,
-            den: sampleBuffer.presentationTimeStamp.isNumeric
-                ? Int32(sampleBuffer.presentationTimeStamp.timescale) : Int32(sampleBuffer.decodeTimeStamp.timescale)
-        )
-        pkt!.pointee.dts = sampleBuffer.decodeTimeStamp.isNumeric ? sampleBuffer.decodeTimeStamp.value : AV_NOPTS_VALUE
-        pkt!.pointee.pts =
-            sampleBuffer.presentationTimeStamp.isNumeric ? sampleBuffer.presentationTimeStamp.value : AV_NOPTS_VALUE
+        pkt!.pointee.time_base = AVRational(num: 1, den: Int32(sampleBuffer.decodeTimeStamp.timescale))
+        pkt!.pointee.dts = sampleBuffer.decodeTimeStamp.value
+        pkt!.pointee.pts = sampleBuffer.presentationTimeStamp.value
+        pkt!.pointee.duration = sampleBuffer.duration.value
         let notSync = (attachment[kCMSampleAttachmentKey_NotSync] as? Bool) ?? false
         pkt!.pointee.flags = (!notSync ? AV_PKT_FLAG_KEY : 0) | (options.doNotOutputFrame ? AV_PKT_FLAG_DISCARD : 0)
         var nb_sd: Int32 = 0
@@ -413,80 +532,95 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             palette.copyBytes(to: UnsafeMutableRawBufferPointer(start: sideData, count: palette.count))
         }
 
-        // Try to detect a discontinuous seek and flush the decoder if we see one
-        let isSeek =
-            (CMGetAttachment(sampleBuffer, key: kCMSampleBufferAttachmentKey_ResetDecoderBeforeDecoding, attachmentModeOut: nil)
-                as? Bool) ?? false
-        if isSeek {
-            avcodec_flush_buffers(dec_ctx)
-        }
-
         // Decode
-        var ret = avcodec_send_packet(dec_ctx, pkt)
+        let ret = avcodec_send_packet(dec_ctx, pkt)
+        av_packet_free(&pkt)  // Free regardless of result since we don't need this any more - actual data lives in CMBlockBuffer
         if ret < 0 {
             let error = AVERROR(errorCode: ret, context: "avcodec_send_packet")
             logger.error(
-                "VideoDecoder decodeFrame at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public): \(error.errorDescription, privacy: .public)"
+                "VideoDecoder decodeFrame at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public): \(error.errorDescription, privacy: .public)"
             )
-            av_packet_free(&pkt)
-            return completionHandler(nil, .frameDropped, MEError(.parsingFailure))
+            let completionHandler = inFlight.removeValue(forKey: sampleBuffer.presentationTimeStamp.value)!
+            return completionHandler(nil, .frameDropped, options.doNotOutputFrame ? nil : MEError(.parsingFailure))
         }
-        if TRACE_VIDEODECODER {
-            logger.debug(
-                "VideoDecoder decodeFrame at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public) flags:\(pkt!.pointee.flags & AV_PKT_FLAG_KEY != 0 ? "K" : "_", privacy: .public)\(pkt!.pointee.flags & AV_PKT_FLAG_DISCARD != 0 ? "D" : "_", privacy: .public)_ \(isSeek ? "Seek" : "", privacy: .public)"
-            )
-        }
-        av_packet_free(&pkt)  // Free regardless of result since we don't need this any more - actual data lives in CMBlockBuffer
 
-        var frame = av_frame_alloc()
-        ret = avcodec_receive_frame(dec_ctx, frame)
-        if ret == AVERROR_EAGAIN {
-            // Discarded packets won't produce anything from avcodec_receive_frame (but it appears we still have to call it). Complete now.
-            av_frame_free(&frame)
-            if options.doNotOutputFrame {
-                if TRACE_VIDEODECODER {
-                    logger.debug(
-                        "VideoDecoder decodeFrame at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public) discarded"
-                    )
-                }
-                return completionHandler(nil, .frameDropped, nil)
-            } else if isSeek {
-                // AVFoundation won't send any more input until the first sampleBuffer after a seek produces output. So we have to return something.
-                do {
+        // Drain any frames the codec is ready to emit
+        var displayNextFrame = (attachment[kCMSampleAttachmentKey_DisplayImmediately] as? Bool) ?? false
+        while true {
+            var frame = av_frame_alloc()
+            let ret = avcodec_receive_frame(dec_ctx, frame)
+            if ret == AVERROR_EAGAIN {
+                av_frame_free(&frame)
+                if options.doNotOutputFrame {
+                    // Discarded packets won't produce anything from avcodec_receive_frame (but it appears we still have to call it).
                     if TRACE_VIDEODECODER {
                         logger.debug(
-                            "VideoDecoder decodeFrame at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public) dummy"
+                            "VideoDecoder decodeFrame -> dts:\(sampleBuffer.decodeTimeStamp.value, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp.value, privacy: .public) discarded"
                         )
                     }
-                    if pixelBufferKey == nil {
-                        // We've never seen an output frame.
-                        pixelBufferKey = PixelBufferCacheKey(dec_ctx: dec_ctx!)  // best effort, may be updated later on a real frame
-                        pixelBufferConfig = makePixelBufferConfig()
-                        manager.pixelBufferAttributes = pixelBufferConfig!.pixelBufferAttributes
+                    let completionHandler = inFlight.removeValue(forKey: sampleBuffer.presentationTimeStamp.value)!
+                    return completionHandler(nil, .frameDropped, nil)
+                } else if displayNextFrame {
+                    // AVFoundation won't send any more input until the first non-discarded sampleBuffer after a seek produces output. So we have to return something.
+                    assert(inFlight.count == 1, "Unexpected pending requests after a seek: inFlight=\(inFlight.count)")
+                    let completionHandler = inFlight.removeValue(forKey: sampleBuffer.presentationTimeStamp.value)!
+                    do {
+                        if TRACE_VIDEODECODER {
+                            logger.debug(
+                                "VideoDecoder decodeFrame -> dts:\(sampleBuffer.decodeTimeStamp.value, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp.value, privacy: .public) dummy"
+                            )
+                        }
+                        if pixelBufferKey == nil {
+                            // We've never seen an output frame.
+                            pixelBufferKey = PixelBufferCacheKey(dec_ctx: dec_ctx!)  // best effort, may be updated later on a real frame
+                            pixelBufferConfig = makePixelBufferConfig()
+                            manager.pixelBufferAttributes = pixelBufferConfig!.pixelBufferAttributes
+                        }
+                        let pixelBuffer = try manager.makePixelBuffer()
+                        fillPixelBufferWithBlack(pixelBuffer)  // otherwise green which is very noticeable
+                        return completionHandler(pixelBuffer, .frameDropped, nil)
+                    } catch {
+                        return completionHandler(nil, .frameDropped, MEError(.allocationFailure))
                     }
-                    let pixelBuffer = try manager.makePixelBuffer()
-                    fillPixelBufferWithBlack(pixelBuffer)  // otherwise green which is very noticeable
-                    return completionHandler(pixelBuffer, .frameDropped, nil)
-                } catch {
-                    return completionHandler(nil, .frameDropped, error)
                 }
+                break
             }
-        }
-        guard ret >= 0 else {
-            let error = AVERROR(errorCode: ret, context: "avcodec_receive_frame")
-            logger.error(
-                "VideoDecoder decodeFrame at dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public): \(error.errorDescription, privacy: .public)"
-            )
+            guard ret == 0 else {
+                av_frame_free(&frame)
+                let error = AVERROR(errorCode: ret, context: "avcodec_receive_frame")
+                guard let completionHandler = inFlight.removeValue(forKey: sampleBuffer.presentationTimeStamp.value) else {
+                    logger.error(
+                        "VideoDecoder decodeFrame -> dts:\(sampleBuffer.decodeTimeStamp.value, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp.value, privacy: .public): \(error.errorDescription, privacy: .public) dropped"
+                    )
+                    return
+                }
+                return completionHandler(nil, .frameDropped, MEError(.parsingFailure))
+            }
+            displayNextFrame = false
+
+            // Complete this frame using the target PTS. best_effort_timestamp is more reliable than pts for older formats e.g. SVQ3 & XVID
+            guard let completionHandler = inFlight.removeValue(forKey: frame!.pointee.best_effort_timestamp) else {
+                // We don't expect to recieve a frame for which we haven't previously seen exacty one packet with matching PTS
+                logger.warning(
+                    "VideoDecoder decodeFrame -> dts:\(frame!.pointee.pkt_dts) pts:\(frame!.pointee.pts) best:\(frame!.pointee.best_effort_timestamp) dropped"
+                )
+                break
+            }
+            do {
+                let pixelBuffer = try convertFrame(&frame!)
+                if TRACE_VIDEODECODER {
+                    logger.debug(
+                        "VideoDecoder decodeFrame -> dts:\(frame!.pointee.pkt_dts) pts:\(frame!.pointee.pts) best:\(frame!.pointee.best_effort_timestamp)"
+                    )
+                }
+                completionHandler(pixelBuffer, [], nil)
+            } catch {
+                logger.error(
+                    "VideoDecoder decodeFrame -> dts:\(frame!.pointee.pkt_dts) pts:\(frame!.pointee.pts) best:\(frame!.pointee.best_effort_timestamp): \(error.localizedDescription)"
+                )
+                completionHandler(nil, [], MEError(.internalFailure))
+            }
             av_frame_free(&frame)
-            return completionHandler(nil, .frameDropped, MEError(.internalFailure))
-        }
-        do {
-            let pixelBuffer = try convertFrame(&frame!)
-            av_frame_free(&frame)
-            return completionHandler(pixelBuffer, [], nil)
-        } catch {
-            av_frame_free(&frame)
-            return completionHandler(nil, .frameDropped, error)
         }
     }
 
