@@ -577,7 +577,7 @@ class VideoDecoder: NSObject, MEVideoDecoder {
                             manager.pixelBufferAttributes = pixelBufferConfig!.pixelBufferAttributes
                         }
                         let pixelBuffer = try manager.makePixelBuffer()
-                        fillPixelBufferWithBlack(pixelBuffer)  // otherwise green which is very noticeable
+                        pixelBuffer.fillWithBlack()  // otherwise green which is very noticeable
                         return completionHandler(pixelBuffer, .frameDropped, nil)
                     } catch {
                         return completionHandler(nil, .frameDropped, MEError(.allocationFailure))
@@ -896,44 +896,51 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             }()
         return config
     }
+}
 
-    // MARK: - Pixel buffer fill helper
+// MARK: - Pixel buffer fill helper
 
-    private func fillPixelBufferWithBlack(_ pixelBuffer: CVPixelBuffer) {
-        if CVPixelBufferGetPixelFormatType(pixelBuffer) == kCVPixelFormatType_32BGRA {
-            CVPixelBufferLockBaseAddress(pixelBuffer, [])
-            defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, []) }
+extension CVPixelBuffer {
+    func fillWithBlack() {
+        if CVPixelBufferGetPixelFormatType(self) == kCVPixelFormatType_32BGRA {
+            CVPixelBufferLockBaseAddress(self, [])
+            defer { CVPixelBufferUnlockBaseAddress(self, []) }
             var buf = vImage_Buffer(
-                data: CVPixelBufferGetBaseAddress(pixelBuffer),
-                height: vImagePixelCount(CVPixelBufferGetHeight(pixelBuffer)),
-                width: vImagePixelCount(CVPixelBufferGetWidth(pixelBuffer)),
-                rowBytes: CVPixelBufferGetBytesPerRow(pixelBuffer)
+                data: CVPixelBufferGetBaseAddress(self),
+                height: vImagePixelCount(CVPixelBufferGetHeight(self)),
+                width: vImagePixelCount(CVPixelBufferGetWidth(self)),
+                rowBytes: CVPixelBufferGetBytesPerRow(self)
             )
             vImageBufferFill_ARGB8888(&buf, [0, 0, 0, 0xff], vImage_Flags(kvImageNoFlags))
             return
         }
 
-        let yBlack10: UInt16 = pixelBufferKey!.colorRange == AVCOL_RANGE_MPEG ? UInt16(64 << 6) : 0  // left-justified 10-bit in 16 bits
+        let yBlack10: UInt16 =
+            [
+                kCVPixelFormatType_420YpCbCr10BiPlanarFullRange,
+                kCVPixelFormatType_422YpCbCr10BiPlanarFullRange,
+                kCVPixelFormatType_444YpCbCr10BiPlanarFullRange,
+            ].contains(CVPixelBufferGetPixelFormatType(self)) ? 0 : UInt16(64 << 6)  // left-justified 10-bit in 16 bits
         let uvNeutral10: UInt16 = UInt16(512 << 6)
 
-        let yWidth = CVPixelBufferGetWidthOfPlane(pixelBuffer, 0)
-        let yHeight = CVPixelBufferGetHeightOfPlane(pixelBuffer, 0)
-        let yRowBytes = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0)
+        let yWidth = CVPixelBufferGetWidthOfPlane(self, 0)
+        let yHeight = CVPixelBufferGetHeightOfPlane(self, 0)
+        let yRowBytes = CVPixelBufferGetBytesPerRowOfPlane(self, 0)
 
-        let uvWidth = CVPixelBufferGetWidthOfPlane(pixelBuffer, 1)  // number of Cb samples per row
-        let uvHeight = CVPixelBufferGetHeightOfPlane(pixelBuffer, 1)
-        let uvRowBytes = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1)
+        let uvWidth = CVPixelBufferGetWidthOfPlane(self, 1)  // number of Cb samples per row
+        let uvHeight = CVPixelBufferGetHeightOfPlane(self, 1)
+        let uvRowBytes = CVPixelBufferGetBytesPerRowOfPlane(self, 1)
 
-        let status = CVPixelBufferLockBaseAddress(pixelBuffer, [])
+        let status = CVPixelBufferLockBaseAddress(self, [])
         guard status == kCVReturnSuccess else { return }
-        defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, []) }
+        defer { CVPixelBufferUnlockBaseAddress(self, []) }
 
-        if let yBase = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0) {
+        if let yBase = CVPixelBufferGetBaseAddressOfPlane(self, 0) {
             let dst = yBase.assumingMemoryBound(to: UInt16.self)
             y_fill_u16(dst, Int32(yWidth), Int32(yHeight), Int32(yRowBytes / 2), yBlack10)
         }
 
-        if let uvBase = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1) {
+        if let uvBase = CVPixelBufferGetBaseAddressOfPlane(self, 1) {
             let dst = uvBase.assumingMemoryBound(to: UInt16.self)
             uv_fill_interleaved_u16(dst, Int32(uvWidth), Int32(uvHeight), Int32(uvRowBytes / 2), uvNeutral10, uvNeutral10)
         }
