@@ -34,7 +34,8 @@ All executables produce output in the system log. Use the filter `subsystem:uk.o
 Console app, or `sudo log stream --style compact --debug --predicate 's=uk.org.marginal.qlvideo'` in
 the Terminal.
 
-In addition, you can dump a summary of formatreader's internal state to the system log with `killall -info "QLVideo Formats"`. 
+In addition, you can dump a summary of the extensions' internal state to the system log with
+`killall -info "QLVideo Formats"` or `killall -info "QLVideo Codecs"`. 
 
 To debug in Xcode, first build the "Quicklook Video" target once. Then switch targets depending on what you wish to debug:
 * mdimporter - You can test the import with `mdimport -t -d3 /path/to/testfile`.
