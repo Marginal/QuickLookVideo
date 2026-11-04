@@ -10,12 +10,14 @@ import Foundation
 import MediaExtension
 import OSLog
 
+extension MEByteSource: @retroactive ByteSource {}  // Conform to our ByteSource protocol to allow for unit testing
+
 let logger = Logger(subsystem: "uk.org.marginal.qlvideo", category: "formatreader")
 
 class FormatReaderFactory: NSObject, MEFormatReaderExtension {
 
     private var infoSignal: DispatchSourceSignal?
-    private var formatReaders = NSHashTable<FormatReader>.weakObjects()  // for dumpState()
+    var formatReaders = NSHashTable<FormatReader>.weakObjects()  // for dumpState() and unit testing
 
     required override init() {
         super.init()
@@ -48,7 +50,20 @@ class FormatReaderFactory: NSObject, MEFormatReaderExtension {
                 "FormatReaderFactory formatReader \(primaryByteSource.fileName, privacy:.public) \(identifier, privacy:.public) \(ProcessInfo().operatingSystemVersionString, privacy:.public)"
             )
         #endif  // DEBUG
-        let reader = FormatReader(primaryByteSource: primaryByteSource)
+        let reader = FormatReader(byteSource: primaryByteSource)
+        formatReaders.add(reader)
+        return reader
+    }
+
+    // For unit testing
+    func formatReader(with mockByteSource: MockByteSource) throws -> any MEFormatReader {
+        #if DEBUG
+            let identifier: String = mockByteSource.contentType?.identifier ?? "unknown"
+            logger.debug(
+                "FormatReaderFactory formatReader \(mockByteSource.fileName, privacy:.public) \(identifier, privacy:.public) \(ProcessInfo().operatingSystemVersionString, privacy:.public)"
+            )
+        #endif  // DEBUG
+        let reader = FormatReader(byteSource: mockByteSource)
         formatReaders.add(reader)
         return reader
     }
@@ -65,7 +80,7 @@ class FormatReaderFactory: NSObject, MEFormatReaderExtension {
         for formatReader in formatReaders.allObjects {
             logger.info("FormatReader for \(formatReader.byteSource.fileName, privacy: .public)")
             logger.info("  PacketDemuxer \(formatReader.demuxer?.status() ?? "absent", privacy: .public)")
-            for trackReader in formatReader.trackReaders.allObjects {
+            for trackReader in formatReader.readers.allObjects {
                 logger.info(
                     "  \(String(describing: type(of: trackReader)), privacy: .public) for stream #\(trackReader.index) \(trackReader.formatDescription!.mediaSubType, privacy: .public) \(formatReader.demuxer?.status(stream: trackReader.index) ?? "absent", privacy: .public)"
                 )

@@ -1,0 +1,37 @@
+{
+  "configurations" : [
+    {
+      "id" : "561D1756-B7E5-4B74-BA11-3D984FD16B9C",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "environmentVariableEntries" : [
+      {
+        "key" : "TESTDIR",
+        "value" : "$(SRCROOT)\/Test"
+      }
+    ],
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:QLVideo.xcodeproj",
+      "identifier" : "AB31E6FA309256610001240F",
+      "name" : "tests"
+    },
+    "testInteropMode" : "complete"
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:QLVideo.xcodeproj",
+        "identifier" : "AB31E6FA309256610001240F",
+        "name" : "tests"
+      }
+    }
+  ],
+  "version" : 1
+}

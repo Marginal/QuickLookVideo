@@ -43,9 +43,9 @@ class FormatReader: NSObject, MEFormatReader {
         "track": (.iTunes, .iTunesMetadataTrackNumber),
     ]
 
-    @objc let byteSource: MEByteSource
+    @objc let byteSource: any ByteSource
     @objc var avio_filepos: Int64 = 0
-    var trackReaders = NSHashTable<TrackReader>.weakObjects()  // for dumpState()
+    var readers = NSHashTable<TrackReader>.weakObjects()  // for dumpState()
     var avio_ctx: UnsafeMutablePointer<AVIOContext>? = nil
     var defaults: UserDefaults?
     var fmt_ctx: UnsafeMutablePointer<AVFormatContext>? = nil
@@ -57,12 +57,13 @@ class FormatReader: NSObject, MEFormatReader {
     var bestAudio = AVERROR_STREAM_NOT_FOUND
     var bestVideo = AVERROR_STREAM_NOT_FOUND
 
-    init(primaryByteSource: MEByteSource) {
-        byteSource = primaryByteSource
+    init(byteSource: ByteSource) {
+        self.byteSource = byteSource
         let myBundle = Bundle.main
-        let suiteName: String = myBundle.infoDictionary!["ApplicationGroup"] as! String
-        defaults = UserDefaults(suiteName: suiteName)
-        if let defaults, defaults.object(forKey: kSettingsSnapshotTime) != nil {
+        if let suiteName: String = myBundle.infoDictionary!["ApplicationGroup"] as? String,
+            let defaults = UserDefaults(suiteName: suiteName),
+            defaults.object(forKey: kSettingsSnapshotTime) != nil
+        {
             // Note that since this extension is running under app sandbox this should only succeed once notarized. But in practice on macOS 26 not even then.
             // https://developer.apple.com/documentation/security/accessing-files-from-the-macos-app-sandbox#Share-files-between-related-apps-with-app-group-containers
             snapshotTime = defaults.double(forKey: kSettingsSnapshotTime)
@@ -281,7 +282,7 @@ class FormatReader: NSObject, MEFormatReader {
 
     func loadTrackReaders(completionHandler: @escaping @Sendable ([any METrackReader]?, (any Error)?) -> Void) {
         guard fmt_ctx != nil else { return completionHandler(nil, MEError(.parsingFailure)) }  // we can be called even if we couldn't open the file
-        var readers: [METrackReader] = []
+        var loaded: [METrackReader] = []
 
         for i in 0..<Int(fmt_ctx!.pointee.nb_streams) {
             let stream = fmt_ctx!.pointee.streams[i]!
@@ -291,21 +292,21 @@ class FormatReader: NSObject, MEFormatReader {
             switch params.pointee.codec_type {
             case AVMEDIA_TYPE_VIDEO:
                 if i == bestVideo {  // We only support one video stream
-                    readers.append(VideoTrackReader(format: self, stream: stream, index: i, enabled: true))
+                    loaded.append(VideoTrackReader(format: self, stream: stream, index: i, enabled: true))
                 }
 
             case AVMEDIA_TYPE_AUDIO:
                 if i == bestAudio {  // AVFoundation will try to seek the first audio stream, even if enabled==false and so we've discarded it
-                    readers.append(AudioTrackReader(format: self, stream: stream, index: i, enabled: true))
+                    loaded.append(AudioTrackReader(format: self, stream: stream, index: i, enabled: true))
                 }
 
             //case AVMEDIA_TYPE_SUBTITLE:
-            //    readers.append(SubtitleTrackReader(format: self, stream: stream, index: i, enabled: besties.contains(i)))
+            //    loaded.append(SubtitleTrackReader(format: self, stream: stream, index: i, enabled: besties.contains(i)))
 
             //case AVMEDIA_TYPE_ATTACHMENT:
             //    let codec_id = stream.pointee.codecpar.pointee.codec_id
             //    if [AV_CODEC_ID_PNG, AV_CODEC_ID_MJPEG].contains(codec_id) {
-            //        readers.append(ArtTrackReader(format: self, stream: stream, index: i, enabled: false))
+            //        loaded.append(ArtTrackReader(format: self, stream: stream, index: i, enabled: false))
             //    } else {
             //        let cd = avcodec_descriptor_get(codec_id)
             //        logger.warning(
@@ -321,7 +322,7 @@ class FormatReader: NSObject, MEFormatReader {
             }
         }
 
-        for reader in readers { trackReaders.add(reader as? TrackReader) }
-        completionHandler(readers, nil)
+        for reader in loaded { readers.add(reader as? TrackReader) }
+        completionHandler(loaded, nil)
     }
 }
