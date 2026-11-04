@@ -314,8 +314,9 @@ class FormatReader: NSObject, MEFormatReader {
             //    }
 
             default:
+                let codecType = av_get_media_type_string(params.pointee.codec_type)
                 logger.info(
-                    "Unhandled \(String(cString:av_get_media_type_string(params.pointee.codec_type)), privacy:.public) stream: \(String(cString:avcodec_get_name(params.pointee.codec_id)), privacy:.public)"
+                    "Unhandled \(codecType != nil ? String(cString:codecType!) : "unknown", privacy:.public) stream: \(String(cString:avcodec_get_name(params.pointee.codec_id)), privacy:.public)"
                 )
             }
         }
