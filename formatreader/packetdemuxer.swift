@@ -195,6 +195,7 @@ final class PacketDemuxer {
     private let stateLock = NSLock()
     private let demuxGroup = DispatchGroup()  // prevent deinit until demuxLoop has exited
     private let demuxQueue = DispatchQueue(label: "uk.org.marginal.qlvideo.formatreader", qos: .default)
+    private let demuxQueueKey = DispatchSpecificKey<Void>()  // identifies code running on demuxQueue
     private let demuxSem = DispatchSemaphore(value: 0)  // wake demuxLoop when paused
 
     init(format: FormatReader) throws {
@@ -294,7 +295,12 @@ final class PacketDemuxer {
     }
 
     func join() {
-        demuxGroup.wait()
+        // If demuxLoop held the last reference to FormatReader then FormatReader.deinit runs on demuxQueue rather
+        // than on whatever MediaToolkit queue/thread is releasing FormatReader.
+        // In which case don't wait - that would deadlock which would cause the file handle to remain open.
+        if DispatchQueue.getSpecific(key: demuxQueueKey) == nil {
+            demuxGroup.wait()
+        }
     }
 
     func get(stream: Int, handle: PacketHandle, consumed: Bool = false) -> UnsafeMutablePointer<AVPacket>? {
@@ -539,12 +545,15 @@ final class PacketDemuxer {
     // MARK: internals
 
     private func startDemuxLoop() {
-        demuxQueue.async { self.demuxLoop() }
+        demuxGroup.enter()
+        demuxQueue.setSpecific(key: demuxQueueKey, value: ())
+        demuxQueue.async { [self] in
+            defer { demuxGroup.leave() }
+            self.demuxLoop()
+        }
     }
 
     private func demuxLoop() {
-        demuxGroup.enter()
-        defer { demuxGroup.leave() }
         while true {
             stateLock.lock()
             guard !stopping else {
