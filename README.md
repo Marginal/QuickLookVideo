@@ -1,8 +1,8 @@
 QuickLook Video [![Download on the Mac App Store](https://github.com/Marginal/QLVideo/raw/master/img/appstore.svg)](https://apps.apple.com/us/app/quicklook-video/id6759566961?pt=1451928&ct=GitHub&mt=8)
 ===============
 
-Thumbnails in Finder, Quick Look previews, and metadata in Finder's Get Info window for most types
-of audio and video files.
+Thumbnails in Finder, Quick Look previews, and metadata in Spotlight and Finder's Get Info window
+for most types of audio and video files.
 
 QuickLook, AVFoundation and Spotlight understand a limited number of media files - mostly only MPEG
 audio and video codecs within ISO file formats. This app adds support for wide range of other codecs
