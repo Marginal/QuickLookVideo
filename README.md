@@ -33,6 +33,7 @@ See the [troubleshooting guide](https://github.com/Marginal/QLVideo/wiki/Trouble
 
 <img src="img/finder.jpeg" alt="Finder" width="517"/> &nbsp; <img src="img/info.jpeg" alt="Finder Info" width="271"/>
 <img src="img/preview.jpeg" alt="QuickLook preview" width="879"/>
+<img src="img/contactsheet.jpeg" alt="Contact sheet" width="1214"/>
 
 License
 -------
