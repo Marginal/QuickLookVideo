@@ -550,6 +550,7 @@
 			children = (
 				AB5CF110304723C900DA6A16 /* averror.swift */,
 				AB5CF114304723C900DA6A16 /* cmtime.swift */,
+				ABA7F71F301A612D008AAAFE /* CodecName.swift */,
 				AB5CF11A304723C900DA6A16 /* snapshotter.swift */,
 			);
 			path = common;
@@ -731,7 +732,6 @@
 				AB1DAC6D2F4D201C006BB899 /* mdimporter-bridge.h */,
 				AB9FB57E1965DD7200D39647 /* main.c */,
 				AB9FB5801965DD7200D39647 /* GetMetadataForFile.swift */,
-				ABA7F71F301A612D008AAAFE /* CodecName.swift */,
 				AB9FB58C1965DF0700D39647 /* Info.plist */,
 				AB1DB93430618A4A00A1FBFC /* schema.xcstrings */,
 			);
