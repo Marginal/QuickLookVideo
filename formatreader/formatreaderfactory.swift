@@ -69,14 +69,17 @@ class FormatReaderFactory: NSObject, MEFormatReaderExtension {
     }
 
     func dumpState() {
-        logger.info("FormatReader state:")
+        logger.info("FormatReader open files:")
+        var limits = rlimit()
+        let maxfd: Int32 = getrlimit(RLIMIT_NOFILE, &limits) == 0 && limits.rlim_cur != Int64.max ? Int32(limits.rlim_cur) : 2560
         var path: [Int8] = Array(repeating: 0, count: Int(MAXPATHLEN))
-        for fd: Int32 in 3..<2560 {
+        for fd: Int32 in 3..<maxfd {
             let ret = fcntl(fd, F_GETPATH, &path)
             if ret >= 0 {
-                logger.info("FD \(fd)\t\(String(cString: path), privacy:.public)")
+                logger.info("  FD \(fd)\t\(String(cString: path), privacy:.public)")
             }
         }
+        logger.info("FormatReader state:")
         for formatReader in formatReaders.allObjects {
             logger.info("FormatReader for \(formatReader.byteSource.fileName, privacy: .public)")
             logger.info("  PacketDemuxer \(formatReader.demuxer?.status() ?? "absent", privacy: .public)")
