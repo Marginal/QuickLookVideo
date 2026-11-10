@@ -13,8 +13,9 @@ final class MediaExtensionsView: NSView {
     }
 
     @IBAction func openPrefs(sender: NSButton) {
-        let url = URL(string: "x-apple.systempreferences:com.apple.ExtensionsPreferences?")!
-        NSWorkspace.shared.open(url)
+        // Found in /System/Library/ExtensionKit/Extensions/LoginItems.appex/Contents/MacOS/LoginItems
+        let url = "x-apple.systempreferences:com.apple.ExtensionsPreferences?extensionPointIdentifier=com.apple.mediaextension.formatreader"
+        NSWorkspace.shared.open(URL(string: url)!)
         let delegate = NSApp.delegate as! AppDelegate
         delegate.mainWindow.endSheet(self.window!)
     }
