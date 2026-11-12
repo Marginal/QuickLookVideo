@@ -188,6 +188,9 @@
 				<string>com.firecore.fileformat.mxf</string>
 				<string>com.firecore.fileformat.dvdmedia</string>
 
+				<!-- defined by Subler.app -->
+				<string>org.perian.matroska</string>
+
 				<!-- schema:stop - stop pulling UTIs into schema.xml -->
 
 				<!-- Try to handle everything; Audio importer will grab the more specific UTIs that it wants to handle -->

@@ -75,6 +75,7 @@
 			<string>org.matroska.mkv</string>
 			<string>com.firecore.fileformat.mkv</string>
 			<string>io.iina.mkv</string>
+			<string>org.perian.matroska</string>
 
 			<string>org.webmproject.webm</string>
 			<string>com.firecore.fileformat.webm</string>
