@@ -216,8 +216,7 @@ class VideoTrackReader: TrackReader, METrackReader {
                             kCFAllocatorNull  // extradata will be deallocated by avformat_close_input()
                         )
                     ]
-                if VTIsHardwareDecodeSupported(kCMVideoCodecType_H264) { codecType = kCMVideoCodecType_H264 }
-                logger.log("H264 decode available: \(VTIsHardwareDecodeSupported(kCMVideoCodecType_H264))")
+                codecType = VTSupported(codecType: kCMVideoCodecType_H264, pixelFormat: AVPixelFormat(params.pointee.format))
             }
         case AV_CODEC_ID_HEVC:
             // MPEG-4 Part 15
@@ -232,24 +231,21 @@ class VideoTrackReader: TrackReader, METrackReader {
                     )
                 ]
                 if let dovi = DolbyVisionConfig(),
+                    dovi.pointee.dv_profile == 5 || dovi.pointee.dv_profile == 8,
                     VTIsHardwareDecodeSupported(kCMVideoCodecType_DolbyVisionHEVC)
-                        && (dovi.pointee.dv_profile == 5 || dovi.pointee.dv_profile == 8)
                 {
                     // Not all profiles are supported https://professionalsupport.dolby.com/s/article/Apple-macOS-Overview
                     let dvAtom = DolbyVisionAtom(dovi: dovi.pointee)
                     atoms[dvAtom.0] = dvAtom.1
                     codecType = kCMVideoCodecType_DolbyVisionHEVC
-                    logger.log("HEVC w/ Dolby Vision \(dovi.pointee.dv_profile) decode available: true")
-                } else if VTIsHardwareDecodeSupported(kCMVideoCodecType_HEVC) {
-                    // Fall back to vanilla HDR. Don't set Dolby Vision atom since it will cause decode to fail.
-                    codecType = kCMVideoCodecType_HEVC
-                    logger.log("HEVC decode available: true")
+                    logger.log("HEVC w/ Dolby Vision \(dovi.pointee.dv_profile) decode available: yes")
                 } else {
-                    logger.log("HEVC decode available: false")
+                    // Fall back to vanilla HDR. Don't set Dolby Vision atom since it will cause decode to fail.
+                    codecType = VTSupported(codecType: kCMVideoCodecType_HEVC, pixelFormat: AVPixelFormat(params.pointee.format))
                 }
                 extensions[kCMFormatDescriptionExtension_SampleDescriptionExtensionAtoms] = atoms as CFDictionary
             }
-        case AV_CODEC_ID_VP9, AV_CODEC_ID_VP8:
+        case AV_CODEC_ID_VP9:
             // https://www.webmproject.org/vp9/mp4/#vp-codec-configuration-box
             // See ff_videotoolbox_vpcc_extradata_create in https://ffmpeg.org/doxygen/8.0/videotoolbox__vp9_8c_source.html#l00065
             let pix_fmt = av_pix_fmt_desc_get(AVPixelFormat(params.pointee.format)).pointee
@@ -276,22 +272,13 @@ class VideoTrackReader: TrackReader, METrackReader {
                 ]
             extensions[kCMFormatDescriptionExtension_SampleDescriptionExtensionAtoms] =
                 ["vpcC" as CFString: CFDataCreate(kCFAllocatorDefault, bytes, CFIndex(bytes.count))] as CFDictionary
-            if params.pointee.codec_id == AV_CODEC_ID_VP8 {
-                if VTIsHardwareDecodeSupported(VideoTrackReader.kVideoCodecType_VP8) {
-                    codecType = VideoTrackReader.kVideoCodecType_VP8
-                }
-                logger.log(
-                    "VP8 decode available: \(VTIsHardwareDecodeSupported(VideoTrackReader.kVideoCodecType_VP8))"
-                )
-            } else if params.pointee.codec_id == AV_CODEC_ID_VP9 {
-                // TODO: This returns false even if the playing process has called VTRegisterSupplementalVideoDecoderIfAvailable(kCMVideoCodecType_VP9) - how to detect this?
-                if VTIsHardwareDecodeSupported(kCMVideoCodecType_VP9) { codecType = kCMVideoCodecType_VP9 }
-                logger.log("VP9 decode available: \(VTIsHardwareDecodeSupported(kCMVideoCodecType_VP9))")
-            }
+            // TODO: This returns false even if the playing process has called VTRegisterSupplementalVideoDecoderIfAvailable(kCMVideoCodecType_VP9) - how to detect this?
+            codecType = VTSupported(codecType: kCMVideoCodecType_VP9, pixelFormat: AVPixelFormat(params.pointee.format))
+
         case AV_CODEC_ID_AV1:
             // https://aomediacodec.github.io/av1-isobmff/#av1codecconfigurationbox-section
             extract_extradata()  // build extradata if required info is in-band
-            if params.pointee.extradata_size >= 20 {
+            if params.pointee.extradata_size > 4 {  // at least one OBU
                 var atoms: [CFString: CFData] = [
                     "av1C" as CFString: CFDataCreateWithBytesNoCopy(
                         kCFAllocatorDefault,
@@ -300,21 +287,21 @@ class VideoTrackReader: TrackReader, METrackReader {
                         kCFAllocatorNull  // extradata will be deallocated by avformat_close_input()
                     )
                 ]
-                /* TODO: Re-enable AV1 hardware decode once I can test it on M3 or later
-                if let dovi = DolbyVisionConfig(),
-                    VTIsHardwareDecodeSupported(kCMVideoCodecType_AV1) && dovi.pointee.dv_profile == 10
-                {
-                    let dvAtom = DolbyVisionAtom(dovi: dovi.pointee)
-                    atoms[dvAtom.0] = dvAtom.1
-                    codecType = kCMVideoCodecType_AV1
-                    logger.log("AV1 w/ Dolby Vision \(dovi.pointee.dv_profile) decode available: true")
-                } else if VTIsHardwareDecodeSupported(kCMVideoCodecType_AV1) {
-                    // Fall back to vanilla HDR. Don't set Dolby Vision atom since it will cause decode to fail.
-                    codecType = kCMVideoCodecType_AV1
-                    logger.log("AV1 decode available: true")
-                } else {
-                    logger.log("AV1 decode available: false")
-                } */
+                #if false
+                    // TODO: Re-enable AV1 hardware decode once I can test it on M3 or later
+                    if let dovi = DolbyVisionConfig(),
+                        dovi.pointee.dv_profile == 10,
+                        VTIsHardwareDecodeSupported(kCMVideoCodecType_AV1)
+                    {
+                        let dvAtom = DolbyVisionAtom(dovi: dovi.pointee)
+                        atoms[dvAtom.0] = dvAtom.1
+                        codecType = kCMVideoCodecType_AV1
+                        logger.log("AV1 w/ Dolby Vision \(dovi.pointee.dv_profile) decode available: yes")
+                    } else {
+                        // Fall back to vanilla HDR. Don't set Dolby Vision atom since it will cause decode to fail.
+                        codecType = VTSupported(codecType: kCMVideoCodecType_AV1, pixelFormat: AVPixelFormat(params.pointee.format))
+                    }
+                #endif
                 extensions[kCMFormatDescriptionExtension_SampleDescriptionExtensionAtoms] = atoms as CFDictionary
             }
         case AV_CODEC_ID_VVC, AV_CODEC_ID_VC1:
@@ -490,7 +477,12 @@ class VideoTrackReader: TrackReader, METrackReader {
         }
         guard let format = format else { return completionHandler(nil, MEError(.internalFailure)) }
         do {
-            let cursor = try VideoSampleCursor(format: format, track: self, index: index, atPresentationTimeStamp: .positiveInfinity)
+            let cursor = try VideoSampleCursor(
+                format: format,
+                track: self,
+                index: index,
+                atPresentationTimeStamp: .positiveInfinity
+            )
             sampleCursors.add(cursor)
             return completionHandler(cursor, nil)
         } catch {
@@ -501,6 +493,8 @@ class VideoTrackReader: TrackReader, METrackReader {
         }
     }
 
+    // MARK: Helpers
+
     // Weird encoding of sizes in ISO sample descriptor atoms
     private func descriptorLength(_ size: Int32) -> [UInt8] {
         [
@@ -509,6 +503,36 @@ class VideoTrackReader: TrackReader, METrackReader {
             UInt8(0x80 | ((size >> 7) & 0x7f)),
             UInt8(size & 0x7f),
         ]
+    }
+
+    // Return the CMVideoCodecType if the codec and format are supported by VideoToolbox, otherwise nil
+    private func VTSupported(codecType: CMVideoCodecType, pixelFormat: AVPixelFormat) -> CMVideoCodecType? {
+        var supported = VTIsHardwareDecodeSupported(codecType)
+        #if arch(x86_64)
+            // For Intel processors VTIsHardwareDecodeSupported can return true even if the specific bit depth is not supported.
+            // We can't test whether the combination is supported empirically since we can't create a VTDecompressionSession in this context.
+            switch codecType {
+            case kCMVideoCodecType_H264:
+                supported = supported && (pixelFormat == AV_PIX_FMT_YUV420P)
+            case kCMVideoCodecType_HEVC:
+                supported =
+                    supported
+                    && [
+                        AV_PIX_FMT_YUV420P, AV_PIX_FMT_YUV420P10LE, AV_PIX_FMT_YUV420P12LE,
+                        AV_PIX_FMT_YUV422P, AV_PIX_FMT_YUV422P10LE, AV_PIX_FMT_YUV422P12LE,
+                        AV_PIX_FMT_YUV444P,
+                    ].contains(pixelFormat)
+            case kCMVideoCodecType_VP9:
+                // According to https://en.wikipedia.org/wiki/Intel_Quick_Sync_Video#Hardware_decoding_and_encoding
+                // Kaby Lake and later (~2017) support hardware decode for 8 and 10 bit but in practice most clients don't call
+                // VTRegisterSupplementalVideoDecoderIfAvailable(kCMVideoCodecType_VP9) so it's academic
+                supported = false
+            default:
+                supported = false
+            }
+        #endif
+        logger.log("VideoToolbox decode available: \(supported ? "yes" : "no", privacy: .public)")
+        return supported ? codecType : nil
     }
 
     // For streams where the extradata required for decoding is in-band instead of in the container e.g. .avi,
