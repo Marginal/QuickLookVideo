@@ -131,6 +131,8 @@
 		ABACB7F23037525400D96E8B /* libswresample.7.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = ABACB7CC3037463B00D96E8B /* libswresample.7.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ABACB7F33037526100D96E8B /* libzimg.2.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = AB006A562F2978B20014937F /* libzimg.2.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ABACC039303F302C00D96E8B /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = ABACC038303F302C00D96E8B /* AppIcon.icon */; };
+		ABB0791430B0891800D149EB /* colormapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABB0791230B0891200D149EB /* colormapping.swift */; };
+		ABB0791630B0891800D149EB /* colormapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABB0791230B0891200D149EB /* colormapping.swift */; };
 		ABBA11CC3040605F00967EFC /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = ABBA11CB3040605F00967EFC /* AppIcon.icon */; };
 		ABBC10E01C1DF64E00B25E28 /* liblzma.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ABBC10DE1C1DF5F600B25E28 /* liblzma.5.dylib */; };
 		ABD908C7304788E2004A75CA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABD908C6304788DC004A75CA /* AppDelegate.swift */; };
@@ -416,6 +418,7 @@
 		ABACB7CD3037463B00D96E8B /* libswscale.10.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libswscale.10.dylib; sourceTree = "<group>"; };
 		ABACB7EA303751AA00D96E8B /* libzimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libzimg.a; sourceTree = "<group>"; };
 		ABACC038303F302C00D96E8B /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
+		ABB0791230B0891200D149EB /* colormapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = colormapping.swift; sourceTree = "<group>"; };
 		ABBA11CB3040605F00967EFC /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		ABBC10DE1C1DF5F600B25E28 /* liblzma.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = liblzma.5.dylib; path = /usr/lib/liblzma.5.dylib; sourceTree = "<absolute>"; };
 		ABCDC9002F6372DE001DE092 /* builddav1d */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = builddav1d; sourceTree = "<group>"; };
@@ -551,6 +554,7 @@
 				AB5CF110304723C900DA6A16 /* averror.swift */,
 				AB5CF114304723C900DA6A16 /* cmtime.swift */,
 				ABA7F71F301A612D008AAAFE /* CodecName.swift */,
+				ABB0791230B0891200D149EB /* colormapping.swift */,
 				AB5CF11A304723C900DA6A16 /* snapshotter.swift */,
 			);
 			path = common;
@@ -1184,6 +1188,7 @@
 				AB5CF14C304723D000DA6A16 /* videodecoder.swift in Sources */,
 				AB5CF14D304723D000DA6A16 /* videodecoder-hdr.swift in Sources */,
 				AB5CF14E304723D000DA6A16 /* videodecoder-rgb.swift in Sources */,
+				ABB0791430B0891800D149EB /* colormapping.swift in Sources */,
 				AB5CF14F304723D000DA6A16 /* videodecoder-vImage.swift in Sources */,
 				AB5CF150304723D000DA6A16 /* videodecoder-zscale.swift in Sources */,
 				AB5CF151304723D000DA6A16 /* videodecoderfactory.swift in Sources */,
@@ -1233,6 +1238,7 @@
 				AB5CF12B304723C900DA6A16 /* callbacks.m in Sources */,
 				AB14D1103099FB16009AACB2 /* MockByteSource.m in Sources */,
 				AB5CF12C304723C900DA6A16 /* cmtime.swift in Sources */,
+				ABB0791630B0891800D149EB /* colormapping.swift in Sources */,
 				AB5CF12D304723C900DA6A16 /* formatreader.swift in Sources */,
 				AB5CF12E304723C900DA6A16 /* snapshotter.swift in Sources */,
 				AB5CF12F304723C900DA6A16 /* formatreaderfactory.swift in Sources */,

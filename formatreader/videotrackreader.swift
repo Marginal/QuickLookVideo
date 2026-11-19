@@ -64,46 +64,6 @@ class VideoTrackReader: TrackReader, METrackReader {
     static let kVideoCodecType_VP8 = CMVideoCodecType(0x7670_3038)  // 'vp08'
     static let kVideoCodecType_catchall = CMVideoCodecType(0x514c_5620)  // 'QLV '
 
-    static let colorPrimaries: [AVColorPrimaries: CFString] = [
-        AVCOL_PRI_BT709: kCMFormatDescriptionColorPrimaries_ITU_R_709_2,
-        AVCOL_PRI_BT470M: kCMFormatDescriptionColorPrimaries_SMPTE_C,
-        AVCOL_PRI_BT470BG: kCMFormatDescriptionColorPrimaries_EBU_3213,
-        AVCOL_PRI_SMPTE170M: kCMFormatDescriptionColorPrimaries_SMPTE_C,
-        AVCOL_PRI_SMPTE240M: kCMFormatDescriptionColorPrimaries_SMPTE_C,
-        AVCOL_PRI_BT2020: kCMFormatDescriptionColorPrimaries_ITU_R_2020,
-        AVCOL_PRI_EBU3213: kCMFormatDescriptionColorPrimaries_EBU_3213,
-    ]
-
-    static let colorTransfer: [AVColorTransferCharacteristic: CFString] = [
-        AVCOL_TRC_BT709: kCMFormatDescriptionTransferFunction_ITU_R_709_2,
-        AVCOL_TRC_GAMMA22: kCMFormatDescriptionTransferFunction_ITU_R_709_2,
-        AVCOL_TRC_GAMMA28: kCMFormatDescriptionTransferFunction_ITU_R_709_2,
-        AVCOL_TRC_SMPTE170M: kCMFormatDescriptionTransferFunction_SMPTE_240M_1995,
-        AVCOL_TRC_SMPTE240M: kCMFormatDescriptionTransferFunction_SMPTE_240M_1995,
-        AVCOL_TRC_SMPTE428: kCMFormatDescriptionTransferFunction_SMPTE_ST_428_1,
-        AVCOL_TRC_BT2020_10: kCMFormatDescriptionTransferFunction_ITU_R_2020,
-        AVCOL_TRC_BT2020_12: kCMFormatDescriptionTransferFunction_ITU_R_2020,
-        AVCOL_TRC_SMPTE2084: kCMFormatDescriptionTransferFunction_SMPTE_ST_2084_PQ,
-        AVCOL_TRC_ARIB_STD_B67: kCMFormatDescriptionTransferFunction_ITU_R_2100_HLG,
-    ]
-
-    static let colorMatrix: [AVColorSpace: CFString] = [
-        AVCOL_SPC_BT709: kCMFormatDescriptionYCbCrMatrix_ITU_R_709_2,
-        AVCOL_SPC_BT470BG: kCMFormatDescriptionYCbCrMatrix_ITU_R_601_4,
-        AVCOL_SPC_SMPTE170M: kCMFormatDescriptionYCbCrMatrix_ITU_R_601_4,
-        AVCOL_SPC_SMPTE240M: kCMFormatDescriptionYCbCrMatrix_SMPTE_240M_1995,
-        AVCOL_SPC_BT2020_NCL: kCMFormatDescriptionYCbCrMatrix_ITU_R_2020,
-    ]
-
-    static let chromaLocation: [AVChromaLocation: CFString] = [
-        AVCHROMA_LOC_LEFT: kCVImageBufferChromaLocation_Left,
-        AVCHROMA_LOC_CENTER: kCVImageBufferChromaLocation_Center,
-        AVCHROMA_LOC_TOP: kCVImageBufferChromaLocation_Top,
-        AVCHROMA_LOC_BOTTOM: kCVImageBufferChromaLocation_Bottom,
-        AVCHROMA_LOC_TOPLEFT: kCVImageBufferChromaLocation_TopLeft,
-        AVCHROMA_LOC_BOTTOMLEFT: kCVImageBufferChromaLocation_BottomLeft,
-    ]
-
     var maxBFrames = 0  // for VideoSampleCursor.stepInPresentationOrder
 
     func loadTrackInfo(completionHandler: @escaping @Sendable (METrackInfo?, (any Error)?) -> Void) {
@@ -311,6 +271,54 @@ class VideoTrackReader: TrackReader, METrackReader {
             break
         }
 
+        // VideoToolbox requires that primaries, transfer and matrix are all set for HDR.
+        // Duplicates logic from VideoDecoder.fixupColors() because we need to do this here for content that will be rendered by
+        // VideoToolbox and in VideoDecoder for content that will be rendered by FFmpeg.
+        // For SDR let the codec decide what to do with unset values.
+
+        if params.pointee.color_trc == AVCOL_TRC_SMPTE2084 || params.pointee.color_trc == AVCOL_TRC_ARIB_STD_B67 {
+            // Explicit PQ or HLG
+            if params.pointee.color_primaries == AVCOL_PRI_UNSPECIFIED { params.pointee.color_primaries = AVCOL_PRI_BT2020 }
+            if params.pointee.color_space == AVCOL_SPC_UNSPECIFIED { params.pointee.color_space = AVCOL_SPC_BT2020_NCL }
+        } else if params.pointee.color_primaries == AVCOL_PRI_BT2020 {
+            // >8‑bit *with BT.2020 primaries* is probably HDR10, or HDR with a custom transfer function (F-Log, L-Log etc) which CoreVideo doesn't natively support.
+            let pixDesc = av_pix_fmt_desc_get(AVPixelFormat(params.pointee.format)).pointee
+            let bitDepth = pixDesc.comp.0.depth  // not always accurate but works for supported formats
+            if bitDepth > 8 {
+                if params.pointee.color_trc == AVCOL_TRC_UNSPECIFIED { params.pointee.color_trc = AVCOL_TRC_SMPTE2084 }
+                if params.pointee.color_space == AVCOL_SPC_UNSPECIFIED { params.pointee.color_space = AVCOL_SPC_BT2020_NCL }
+            }
+        }
+        if let colorPrimaries = FFmpegToCM.primaries[params.pointee.color_primaries] {
+            extensions[kCMFormatDescriptionExtension_ColorPrimaries] = colorPrimaries
+        }
+        if let colorTransfer = FFmpegToCM.transfer[params.pointee.color_trc] {
+            extensions[kCMFormatDescriptionExtension_TransferFunction] = colorTransfer
+        }
+        if let colorMatrix = FFmpegToCM.matrix[params.pointee.color_space] {
+            extensions[kCMFormatDescriptionExtension_YCbCrMatrix] = colorMatrix
+        }
+
+        // Other extensions
+
+        if let codecName = CodecName.name(params: params) {
+            extensions[kCMFormatDescriptionExtension_FormatName as CFString] = codecName as CFString
+        }
+        let sar = av_guess_sample_aspect_ratio(format.fmt_ctx, &stream.pointee, nil)
+        if sar.num != 0 && (sar.num != 1 || sar.den != 1) {
+            extensions[kCMFormatDescriptionExtension_PixelAspectRatio] =
+                [
+                    kCMFormatDescriptionKey_PixelAspectRatioHorizontalSpacing: sar.num as CFNumber,
+                    kCMFormatDescriptionKey_PixelAspectRatioVerticalSpacing: sar.den as CFNumber,
+                ] as CFDictionary
+        }
+        if let colorRange = FFmpegToCM.colorRange[params.pointee.color_range] {
+            extensions[kCMFormatDescriptionExtension_FullRangeVideo] = colorRange
+        }
+        if let chromaLocation = FFmpegToCM.location[params.pointee.chroma_location] {
+            extensions[kCMFormatDescriptionExtension_ChromaLocationTopField] = chromaLocation
+        }
+
         if SOFTWARE_DECODE || codecType == nil {
             // macOS can't decode - check whether FFmpeg has a decoder
             guard avcodec_find_decoder(params.pointee.codec_id) != nil else {
@@ -324,7 +332,7 @@ class VideoTrackReader: TrackReader, METrackReader {
             var parameters: [CFString: Any?] = [
                 "AVCodecParameters" as CFString: CFDataCreate(
                     kCFAllocatorDefault,
-                    stream.pointee.codecpar,
+                    params,
                     CFIndex(MemoryLayout<AVCodecParameters>.size)
                 )
             ]
@@ -352,33 +360,6 @@ class VideoTrackReader: TrackReader, METrackReader {
             // Give the track a fourcc that ensures our MEVideoDecoder gets to see it
             codecType = VideoTrackReader.supported[params.pointee.codec_id] ?? VideoTrackReader.kVideoCodecType_catchall
         }
-
-        // Other extensions
-        if let codecName = CodecName.name(params: params) {
-            extensions[kCMFormatDescriptionExtension_FormatName as CFString] = codecName as CFString
-        }
-        let sar = av_guess_sample_aspect_ratio(format.fmt_ctx, &stream.pointee, nil)
-        if sar.num != 0 && (sar.num != 1 || sar.den != 1) {
-            extensions[kCMFormatDescriptionExtension_PixelAspectRatio as CFString] =
-                [
-                    kCVImageBufferPixelAspectRatioHorizontalSpacingKey as CFString: sar.num as CFNumber,
-                    kCVImageBufferPixelAspectRatioVerticalSpacingKey as CFString: sar.den as CFNumber,
-                ] as CFDictionary
-        }
-        if let colorPrimaries = VideoTrackReader.colorPrimaries[params.pointee.color_primaries] {
-            extensions[kCMFormatDescriptionExtension_ColorPrimaries as CFString] = colorPrimaries
-        }
-        if let colorTransfer = VideoTrackReader.colorTransfer[params.pointee.color_trc] {
-            extensions[kCMFormatDescriptionExtension_TransferFunction as CFString] = colorTransfer
-        }
-        if let colorMatrix = VideoTrackReader.colorMatrix[params.pointee.color_space] {
-            extensions[kCMFormatDescriptionExtension_YCbCrMatrix as CFString] = colorMatrix
-        }
-        if let chromaLocation = VideoTrackReader.chromaLocation[params.pointee.chroma_location] {
-            extensions[kCVImageBufferChromaLocationTopFieldKey as CFString] = chromaLocation
-        }
-        extensions[kCMFormatDescriptionExtension_FullRangeVideo] =
-            params.pointee.color_range == AVCOL_RANGE_JPEG ? kCFBooleanTrue : kCFBooleanFalse
 
         logger.debug(
             "VideoTrackReader stream \(self.index) loadTrackInfo enabled:\(self.isEnabled) time_base:\(self.stream.pointee.time_base.num)/\(self.stream.pointee.time_base.den) codecType:\"\(CodecName.av_fourcc2str(codecType!), privacy: .public)\" extensions:\(extensions, privacy:.public) timescale:\(self.stream.pointee.time_base.den) \(params.pointee.width)x\(params.pointee.height) \(av_q2d(self.stream.pointee.avg_frame_rate), format:.fixed(precision:2))fps"

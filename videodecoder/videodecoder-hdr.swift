@@ -70,26 +70,26 @@ extension VideoDecoder {
 
         // Build propagated attachments from the frame's color properties
         var attachments: [String: Any] = [:]
-        if let primaries = av_map_videotoolbox_color_primaries_from_av(pixelBufferKey.colorPrimaries) {
-            attachments[kCVImageBufferColorPrimariesKey as String] = primaries.takeRetainedValue()
+        if let colorPrimaries = FFmpegToCM.primaries[pixelBufferKey.colorPrimaries] {
+            attachments[kCVImageBufferColorPrimariesKey as String] = colorPrimaries
         }
-        if let transfer = av_map_videotoolbox_color_trc_from_av(pixelBufferKey.colorTrc) {
-            attachments[kCVImageBufferTransferFunctionKey as String] = transfer.takeRetainedValue()
+        if let colorTransfer = FFmpegToCM.transfer[pixelBufferKey.colorTrc] {
+            attachments[kCVImageBufferTransferFunctionKey as String] = colorTransfer
         }
-        if let matrix = av_map_videotoolbox_color_matrix_from_av(pixelBufferKey.colorspace) {
-            attachments[kCVImageBufferYCbCrMatrixKey as String] = matrix.takeRetainedValue()
+        if let colorMatrix = FFmpegToCM.matrix[pixelBufferKey.colorspace] {
+            attachments[kCVImageBufferYCbCrMatrixKey as String] = colorMatrix
         }
-        if let chromaLoc = av_map_videotoolbox_chroma_loc_from_av(pixelBufferKey.chromaLocation) {
-            attachments[kCVImageBufferChromaLocationTopFieldKey as String] = chromaLoc.takeRetainedValue()
+        if let chromaLocation = FFmpegToCM.location[pixelBufferKey.chromaLocation] {
+            attachments[kCVImageBufferChromaLocationTopFieldKey as String] = chromaLocation
         }
 
-        // Pass through pixel aspect ratio from the CMFormatDescription so the display system handles anamorphic stretch
-        if let sar = formatDescription.extensions[kCMFormatDescriptionExtension_PixelAspectRatio] as? [CFString: NSNumber],
-            let num = sar[kCVImageBufferPixelAspectRatioHorizontalSpacingKey],
-            let den = sar[kCVImageBufferPixelAspectRatioVerticalSpacingKey],
-            num != den
-        {
-            attachments[kCVImageBufferPixelAspectRatioKey as String] = sar
+        // Let the display system handle anamorphic stretch
+        if pixelBufferKey.sar_num != 0 && (pixelBufferKey.sar_num != 1 || pixelBufferKey.sar_den != 1) {
+            attachments[kCVImageBufferPixelAspectRatioKey as String] =
+                [
+                    kCVImageBufferPixelAspectRatioHorizontalSpacingKey: pixelBufferKey.sar_num as CFNumber,
+                    kCVImageBufferPixelAspectRatioVerticalSpacingKey: pixelBufferKey.sar_den as CFNumber,
+                ] as CFDictionary
         }
 
         // Add mastering display, content light level, and ambient viewing environment metadata
@@ -129,7 +129,7 @@ extension VideoDecoder {
                 kCVPixelBufferPixelFormatTypeKey as String: pixelFormat,
                 kCVPixelBufferIOSurfacePropertiesKey as String: [:] as CFDictionary,
                 kCVPixelBufferMetalCompatibilityKey as String: kCFBooleanTrue as CFBoolean,
-                kCVBufferPropagatedAttachmentsKey as String: attachments,
+                kCVBufferPropagatedAttachmentsKey as String: attachments as CFDictionary,
             ],
             bitDepth: bitDepth,
             uvShiftX: UInt32(hshift),

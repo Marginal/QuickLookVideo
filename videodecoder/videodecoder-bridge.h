@@ -19,7 +19,6 @@
 
 // FFmpeg internals
 #include <libavutil/pixdesc.h>
-#include <libavutil/hwcontext_videotoolbox.h>
 
 // this project
 #include "callbacks.h"

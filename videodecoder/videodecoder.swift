@@ -176,7 +176,6 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             }
         } else if let codecID = VideoDecoder.supported[codecType] {
             // Didn't come from our formatreader, e.g. from .avi or .mov. Try to decode anyway.
-            let depth = videoFormatDescription.extensions[kCMFormatDescriptionExtension_Depth as CFString] as? NSNumber
             switch codecID {
 
             // RGB
@@ -262,9 +261,43 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             params.pointee.codec_type = AVMEDIA_TYPE_VIDEO
             params.pointee.codec_id = codecID
             params.pointee.codec_tag = codecType.byteSwapped  // Supplied codecType is big endian
-            params.pointee.width = videoFormatDescription.dimensions.width
-            params.pointee.height = videoFormatDescription.dimensions.height
-            params.pointee.bits_per_coded_sample = depth?.int32Value ?? 0
+            params.pointee.width = formatDescription.dimensions.width
+            params.pointee.height = formatDescription.dimensions.height
+            if let depth = formatDescription.extensions[kCMFormatDescriptionExtension_Depth] as? NSNumber {
+                params.pointee.bits_per_coded_sample = depth.int32Value
+            }
+            if let sar = formatDescription.extensions[kCMFormatDescriptionExtension_PixelAspectRatio] as? [CFString: NSNumber],
+                let num = sar[kCMFormatDescriptionKey_PixelAspectRatioHorizontalSpacing],
+                let den = sar[kCMFormatDescriptionKey_PixelAspectRatioVerticalSpacing],
+                num != den
+            {
+                params.pointee.sample_aspect_ratio = AVRational(num: num.int32Value, den: den.int32Value)
+            }
+            if let colorRange = formatDescription.extensions[kCMFormatDescriptionExtension_FullRangeVideo] as? Bool,
+                let colorRangeFFmpeg = CMToFFmpeg.colorRange[colorRange as CFBoolean]
+            {
+                params.pointee.color_range = colorRangeFFmpeg
+            }
+            if let colorPrimaries = formatDescription.extensions[kCMFormatDescriptionExtension_ColorPrimaries] as? String,
+                let colorPrimariesFFmpeg = CMToFFmpeg.primaries[colorPrimaries as CFString]
+            {
+                params.pointee.color_primaries = colorPrimariesFFmpeg
+            }
+            if let colorTransfer = formatDescription.extensions[kCMFormatDescriptionExtension_TransferFunction] as? String,
+                let colorTransferFFmpeg = CMToFFmpeg.transfer[colorTransfer as CFString]
+            {
+                params.pointee.color_trc = colorTransferFFmpeg
+            }
+            if let colorSpace = formatDescription.extensions[kCMFormatDescriptionExtension_YCbCrMatrix] as? String,
+                let colorSpaceFFmpeg = CMToFFmpeg.matrix[colorSpace as CFString]
+            {
+                params.pointee.color_space = colorSpaceFFmpeg
+            }
+            if let chromaLocation = formatDescription.extensions[kCMFormatDescriptionExtension_ChromaLocationTopField] as? String,
+                let chromaLocationFFmpeg = CMToFFmpeg.location[chromaLocation as CFString]
+            {
+                params.pointee.chroma_location = chromaLocationFFmpeg
+            }
             logger.warning(
                 "VideoDecoder: No AVCodecParameters in \(String(describing: self.formatDescription), privacy: .public))"
             )
@@ -735,7 +768,7 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             return
         }
 
-        // >8‑bit *with BT.2020 primaries* is probably HDR10.
+        // >8‑bit *with BT.2020 primaries* is probably HDR10, or HDR with a custom transfer function (F-Log, L-Log etc) which CoreVideo doesn't natively support.
         let pixDesc = av_pix_fmt_desc_get(AVPixelFormat(frame.pointee.format)).pointee
         let bitDepth = pixDesc.comp.0.depth  // not always accurate but works for supported formats
         if bitDepth > 8 && frame.pointee.color_primaries == AVCOL_PRI_BT2020 {
@@ -778,6 +811,8 @@ class VideoDecoder: NSObject, MEVideoDecoder {
     struct PixelBufferCacheKey: Equatable {
         let width: Int32
         let height: Int32
+        let sar_num: Int32
+        let sar_den: Int32
         let format: Int32
         let colorTrc: AVColorTransferCharacteristic
         let colorPrimaries: AVColorPrimaries
@@ -791,6 +826,8 @@ class VideoDecoder: NSObject, MEVideoDecoder {
         init(frame: UnsafePointer<AVFrame>) {
             self.width = frame.pointee.width
             self.height = frame.pointee.height
+            self.sar_num = frame.pointee.sample_aspect_ratio.num
+            self.sar_den = frame.pointee.sample_aspect_ratio.den
             self.format = frame.pointee.format
             self.colorTrc = frame.pointee.color_trc
             self.colorPrimaries = frame.pointee.color_primaries
@@ -818,6 +855,8 @@ class VideoDecoder: NSObject, MEVideoDecoder {
         init(dec_ctx: UnsafePointer<AVCodecContext>) {
             self.width = dec_ctx.pointee.width
             self.height = dec_ctx.pointee.height
+            self.sar_num = dec_ctx.pointee.sample_aspect_ratio.num
+            self.sar_den = dec_ctx.pointee.sample_aspect_ratio.den
             self.format = dec_ctx.pointee.pix_fmt.rawValue
             self.colorTrc = dec_ctx.pointee.color_trc
             self.colorPrimaries = dec_ctx.pointee.color_primaries
@@ -866,14 +905,17 @@ class VideoDecoder: NSObject, MEVideoDecoder {
 
         let config =
             hdrPixelBufferConfig()
-            ?? {
-                // SDR path: adjust destination width for anamorphic so vImage/zscale will scale into the CVPixelBuffer.
-                if let sar = formatDescription.extensions[kCMFormatDescriptionExtension_PixelAspectRatio]
-                    as? [CFString: NSNumber],
-                    let num = sar[kCVImageBufferPixelAspectRatioHorizontalSpacingKey],
-                    let den = sar[kCVImageBufferPixelAspectRatioVerticalSpacingKey]
-                {
-                    width = Int(av_rescale_rnd(Int64(width), num.int64Value, den.int64Value, AV_ROUND_NEAR_INF))
+            ?? {  // SDR path
+                // Adjust destination width for anamorphic so vImage/zscale will scale into the CVPixelBuffer.
+                if pixelBufferKey.sar_num != 0 && (pixelBufferKey.sar_num != 1 || pixelBufferKey.sar_den != 1) {
+                    width = Int(
+                        av_rescale_rnd(
+                            Int64(width),
+                            Int64(pixelBufferKey.sar_num),
+                            Int64(pixelBufferKey.sar_den),
+                            AV_ROUND_NEAR_INF
+                        )
+                    )
                 }
                 return PixelBufferConfig(
                     pixelBufferAttributes: [

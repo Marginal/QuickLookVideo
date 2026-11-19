@@ -52,6 +52,7 @@ class SnapShotter {
         // Set up for conversion
 
         // Logic abbrevated from fixupColors()
+        guard let desc = av_pix_fmt_desc_get(AVPixelFormat(rawValue: params.pointee.format)) else { return nil }
         isHDR =
             dec_ctx!.pointee.color_trc == AVCOL_TRC_SMPTE2084 || dec_ctx!.pointee.color_trc == AVCOL_TRC_ARIB_STD_B67
             || av_packet_side_data_get(
@@ -69,6 +70,8 @@ class SnapShotter {
                 params.pointee.nb_coded_side_data,
                 AV_PKT_DATA_DOVI_CONF
             ) != nil
+            // >8‑bit *with BT.2020 primaries* is probably HDR10, or HDR with a custom transfer function (F-Log, L-Log etc) which CoreVideo doesn't natively support.
+            || (params.pointee.color_primaries == AVCOL_PRI_BT2020 && desc.pointee.comp.0.depth > 8)
 
         srcWidth = dec_ctx!.pointee.width
         srcHeight = dec_ctx!.pointee.height
