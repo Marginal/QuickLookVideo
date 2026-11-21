@@ -728,6 +728,12 @@
             "value" : "Por favor, use o lançamento %@ do QuickLook Video"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пожалуйста, используйте версию QuickLook Video %@"
+          }
+        },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
@@ -793,6 +799,12 @@
             "value" : "QuickLook Video 3.x requer suporte à GPU para VideoToolbox, que não está disponível nesta máquina"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video 3.x требует поддержку GPU для VideoToolbox, которая недоступна на этой машине"
+          }
+        },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
@@ -856,6 +868,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "QuickLook Video requer um Mac ou mais tarde/2013, com suporte para AVX2 e VideoToolbox"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QuickLook Video требует Mac второй половины 2013 года или новее с поддержкой AVX2 и VideoToolbox"
           }
         },
         "sv" : {
