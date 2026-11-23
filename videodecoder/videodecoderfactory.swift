@@ -67,7 +67,6 @@ class VideoDecoderFactory: NSObject, MEVideoDecoderExtension {
                 \(decoder.formatDescription.dimensions.width)x\(decoder.formatDescription.dimensions.height)
                 """
             )
-            logger.info("  Next index:\(decoder.nextIndex ?? -1)")
             logger.info("  InFlight count:\(decoder.inFlight.count) first:\(decoder.inFlight.keys.min() ?? -1)")
         }
     }

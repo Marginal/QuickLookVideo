@@ -108,12 +108,11 @@ class VideoDecoder: NSObject, MEVideoDecoder {
     // For managing pending requests
     private let decoderQueue = DispatchQueue(label: "uk.org.marginal.qlvideo.videodecoder", qos: .userInitiated)
     var inFlight: [Int64: @Sendable (CVImageBuffer?, MEDecodeFrameStatus, (any Error)?) -> Void] = [:]  // output completionHandlers ordered by PTS
-    var nextIndex: Int64? = nil
 
     // For draining inFlight packets
     var watchdog: DispatchSourceTimer?
     var baselineDTS: CMTime = .zero
-    var baselineTime = DispatchTime.now()
+    var baselineTime = DispatchTime(uptimeNanoseconds: 0)
     var lastPacketTime = DispatchTime.now()  // timestamp of last call to decodeFrame
 
     // MARK: - init: parse CMVideoFormatDescription
@@ -437,14 +436,9 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             watchdog?.cancel()
             watchdog = nil
 
-            // Older formats can have packet durations inconsistent with actual packet spacing, missing packets, etc, which makes
-            // it difficult to order the incoming packets.
-            // So for formats that we demux, prefer our explicit monotonically increasing index.
-            let index = attachment["QLVideoIndex" as CFString] as? Int64
-
             // Discontinuous seek
-            if nextIndex == nil  // Can be seen with e.g. SVQ1 in .mov, where a new decoder is instantiated mid stream
-                || sampleBuffer.attachments[.resetDecoderBeforeDecoding]?.value as? Bool ?? false
+            if sampleBuffer.attachments[.resetDecoderBeforeDecoding]?.value as? Bool ?? false
+                || baselineTime == DispatchTime(uptimeNanoseconds: 0)  // decoder (re)initted without a Reset
             {
                 // Rebase watchdog
                 baselineTime = DispatchTime.now()
@@ -453,20 +447,14 @@ class VideoDecoder: NSObject, MEVideoDecoder {
                 // Cancel everything
                 assert(inFlight.count == 0, "Discontinuous seek with pending requests inFlight=\(self.inFlight.count)")
                 while let req = self.inFlight.popFirst() { req.value(nil, .frameDropped, MEError(.parsingFailure)) }
-                nextIndex = index ?? sampleBuffer.decodeTimeStamp.value
                 avcodec_flush_buffers(dec_ctx)  // Flush codec
             }
 
             // Queue completionHandler for this item
-            assert(
-                index ?? sampleBuffer.decodeTimeStamp.value <= nextIndex!,
-                "Packet out of order \(index ?? sampleBuffer.decodeTimeStamp.value) > \(nextIndex!)"
-            )
             inFlight[sampleBuffer.presentationTimeStamp.value] = completionHandler
 
             // Decode
             decodeOne(sampleBuffer: sampleBuffer, options: options)
-            nextIndex = index != nil ? index! + 1 : sampleBuffer.decodeTimeStamp.value + sampleBuffer.duration.value + 1
 
             // Ensure that the decode pipeline is drained if it becomes stalled pending a seek
             if sampleBuffer.attachments[.drainAfterDecoding]?.value as? Bool ?? false {  // Sadly this is never set in practice
