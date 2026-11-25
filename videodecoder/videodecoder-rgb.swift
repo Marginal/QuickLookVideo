@@ -26,6 +26,9 @@ extension VideoDecoder {
         let dstWidth = CVPixelBufferGetWidth(pixelBuffer)
         let dstHeight = CVPixelBufferGetHeight(pixelBuffer)
 
+        if sws_ctx == nil {
+            logger.log("VideoDecoder using sws_scale for format conversion")
+        }
         sws_ctx = sws_getCachedContext(
             sws_ctx,
             Int32(srcWidth),
