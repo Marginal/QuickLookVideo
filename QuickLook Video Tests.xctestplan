@@ -20,8 +20,7 @@
       "containerPath" : "container:QLVideo.xcodeproj",
       "identifier" : "AB31E6FA309256610001240F",
       "name" : "tests"
-    },
-    "testInteropMode" : "complete"
+    }
   },
   "testTargets" : [
     {

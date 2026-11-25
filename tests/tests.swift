@@ -11,24 +11,31 @@ import Testing
 
 struct FormatReaderTests {
 
+    let testdir: URL
+
+    init() throws {
+        let testdirName = try #require(ProcessInfo.processInfo.environment["TESTDIR"])  // Must be set in the XCTest plan
+        testdir = URL(filePath: testdirName)
+        try #require(testdir.resourceValues(forKeys: [.isDirectoryKey]).isDirectory ?? false)
+    }
+
     @Test("FormatReader deinit", .bug("https://github.com/Marginal/QuickLookVideo/issues/214")) func testdeinit()
         async throws
     {
-        let env = ProcessInfo.processInfo.environment
-        let testdirName = try #require(env["TESTDIR"])  // Must be set in the XCTest plan
-        let testdir = URL(filePath: testdirName)
-        try #require(testdir.resourceValues(forKeys: [.isDirectoryKey]).isDirectory ?? false)
         let files = try FileManager.default.contentsOfDirectory(
             at: testdir,
             includingPropertiesForKeys: nil,
-            options: [.skipsSubdirectoryDescendants, .skipsPackageDescendants]
+            options: [.skipsHiddenFiles, .skipsPackageDescendants]
         )
 
         let factory = FormatReaderFactory()
 
         try await Task.detached(priority: .medium) {
+            var total = 0
+            var processed = 0
             for _ in 0..<10 {
                 for file in files {
+                    total += 1
                     guard let byteSource = MockByteSource(file: file),
                         let formatReader = try? await factory.formatReader(with: byteSource),
                         (try? await formatReader.fileInfo()) != nil,  // must call this before any other MEFormatReader functions
@@ -44,6 +51,7 @@ struct FormatReaderTests {
                             do {
                                 let sampleCursor = try await trackReader.sampleCursor(atPresentationTimeStamp: QLThumbnailTime)
                                 try await _ = sampleCursor.loadSampleBufferContainingSamples!(to: nil)
+                                processed += 1
                             } catch {
                                 // for this test we're not interested in media files we can't demux
                             }
@@ -55,6 +63,8 @@ struct FormatReaderTests {
 
             // Check all FormatReaders have deinitted
             try await Task.sleep(for: .seconds(1))  // Allow any underway av_read_frame() or av_bsf_receive_packet() to finish
+            print("\(processed)/\(total) files processed")
+            try #require(processed > 0)
             try #require(factory.formatReaders.allObjects.count == 0)  // NSHashTable.count can be != 0 even though no real objects remain
         }.value
     }
