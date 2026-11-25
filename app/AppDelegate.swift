@@ -178,7 +178,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // No way to tell directly whether MediaExtensions are enabled.
         // So check playability of a file that requires a formatreader.
-        guard let url = Bundle.main.url(forResource: "test-vp8-vorbis-webvtt", withExtension: "webm") else { return }
+        guard let url = Bundle.main.url(forResource: "test-vp8-vorbis-webvtt", withExtension: "qlvideo") else { return }
         let asset = AVURLAsset(url: url)
         Task {
             do {

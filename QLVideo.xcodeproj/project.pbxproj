@@ -37,7 +37,7 @@
 		AB35B6AF305EC7B400A8BDF0 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = AB35B6AE305EC7B400A8BDF0 /* AppIcon.icon */; };
 		AB35B6B130600D5100A8BDF0 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB35B6B030600D5100A8BDF0 /* main.swift */; };
 		AB35B6B430603D9600A8BDF0 /* callbacks.m in Sources */ = {isa = PBXBuildFile; fileRef = AB35B6B330603D9600A8BDF0 /* callbacks.m */; };
-		AB3AD4E02FEEADDC0016453D /* test-vp8-vorbis-webvtt.webm in Resources */ = {isa = PBXBuildFile; fileRef = AB3AD4DF2FEEADDC0016453D /* test-vp8-vorbis-webvtt.webm */; };
+		AB3AD4E02FEEADDC0016453D /* test-vp8-vorbis-webvtt.qlvideo in Resources */ = {isa = PBXBuildFile; fileRef = AB3AD4DF2FEEADDC0016453D /* test-vp8-vorbis-webvtt.qlvideo */; };
 		AB3AD4E22FEEBF380016453D /* MediaExtensionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB3AD4E12FEEBF2B0016453D /* MediaExtensionsView.swift */; };
 		AB49FBA22923B5DD00B126C0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB49FB952923B5BB00B126C0 /* AppDelegate.swift */; };
 		AB49FBB92923CF1C00B126C0 /* QLVideo Metadata.mdimporter in Embed mdimporter */ = {isa = PBXBuildFile; fileRef = AB9FB56D1965DD7200D39647 /* QLVideo Metadata.mdimporter */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -332,7 +332,7 @@
 		AB35B6B230603D9600A8BDF0 /* callbacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = callbacks.h; sourceTree = "<group>"; };
 		AB35B6B330603D9600A8BDF0 /* callbacks.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = callbacks.m; sourceTree = "<group>"; };
 		AB38FD9F3092479F00EBDDEF /* tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = tests.swift; sourceTree = "<group>"; };
-		AB3AD4DF2FEEADDC0016453D /* test-vp8-vorbis-webvtt.webm */ = {isa = PBXFileReference; lastKnownFileType = file; path = "test-vp8-vorbis-webvtt.webm"; sourceTree = "<group>"; };
+		AB3AD4DF2FEEADDC0016453D /* test-vp8-vorbis-webvtt.qlvideo */ = {isa = PBXFileReference; lastKnownFileType = file; path = "test-vp8-vorbis-webvtt.qlvideo"; sourceTree = "<group>"; };
 		AB3AD4E12FEEBF2B0016453D /* MediaExtensionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExtensionsView.swift; sourceTree = "<group>"; };
 		AB49FB6F2922769F00B126C0 /* QuickLook Video.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "QuickLook Video.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB49FB7A292276A100B126C0 /* QuickLookVideo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = QuickLookVideo.entitlements; sourceTree = "<group>"; };
@@ -574,7 +574,7 @@
 				AB9846DC196B790F00AF6349 /* Info.plist */,
 				AB09EA092F7B272000E23C51 /* Localizable.xcstrings */,
 				AB49FB7A292276A100B126C0 /* QuickLookVideo.entitlements */,
-				AB3AD4DF2FEEADDC0016453D /* test-vp8-vorbis-webvtt.webm */,
+				AB3AD4DF2FEEADDC0016453D /* test-vp8-vorbis-webvtt.qlvideo */,
 			);
 			path = app;
 			sourceTree = "<group>";
@@ -1074,7 +1074,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				ABE72EB22937FAE4005433DF /* Main.xib in Resources */,
-				AB3AD4E02FEEADDC0016453D /* test-vp8-vorbis-webvtt.webm in Resources */,
+				AB3AD4E02FEEADDC0016453D /* test-vp8-vorbis-webvtt.qlvideo in Resources */,
 				AB09EA0A2F7B272000E23C51 /* Localizable.xcstrings in Resources */,
 				ABACC039303F302C00D96E8B /* AppIcon.icon in Resources */,
 			);

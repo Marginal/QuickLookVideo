@@ -36,6 +36,7 @@
 		<string>$(PRODUCT_MODULE_NAME).FormatReaderFactory</string>
 		<key>MTFileNameExtensionArray</key>
 		<array>
+			<string>qlvideo</string>
 			<string>mka</string>
 			<string>mkv</string>
 			<string>webm</string>
@@ -69,6 +70,8 @@
 		</array>
 		<key>MTUTTypeArray</key>
 		<array>
+			<string>uk.org.marginal.qlvideo</string>
+
 			<string>org.matroska.mka</string>
 			<string>io.iina.mka</string>
 
@@ -174,6 +177,25 @@
 		  these types are imported by the CoreMedia importer (which doesn't understand them) instead of our
 		  mdimporter. Seems to work OK without.
 		  -->
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.movie</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>QuickLook Video File</string>
+			<key>UTTypeIdentifier</key>
+			<string>uk.org.marginal.qlvideo</string>
+			<key>UTTypeReferenceURL</key>
+			<string>https://github.com/Marginal/QuickLookVideo/wiki</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>qlvideo</string>
+				</array>
+			</dict>
+		</dict>
 		<dict>
 			<key>UTTypeConformsTo</key>
 			<array>
