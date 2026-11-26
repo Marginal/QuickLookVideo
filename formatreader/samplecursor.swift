@@ -242,7 +242,7 @@ class SampleCursor: NSObject, MESampleCursor, NSCopying {
             }
             do {
                 guard let newHandle = try demuxer?.seek(stream: streamIndex, decodeTimeStamp: decodeTimeStamp),
-                    let pkt = demuxer?.get(stream: self.streamIndex, handle: newHandle)!
+                    let pkt = demuxer?.get(stream: self.streamIndex, handle: newHandle)
                 else {
                     return completionHandler(.invalid, false, MEError(.endOfStream))
                 }
