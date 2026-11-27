@@ -465,7 +465,7 @@ class VideoDecoder: NSObject, MEVideoDecoder {
                 let timer = DispatchSource.makeTimerSource(queue: decoderQueue)  // have to re-create since we can't re-use after .cancel
                 timer.setEventHandler(handler: { [weak self] in
                     guard let self else { return }
-                    if TRACE_VIDEODECODER { logger.debug("VideoDecoder draining \(inFlight.count) frames") }
+                    if TRACE_VIDEODECODER { logger.debug("VideoDecoder draining \(inFlight.count) frames: \(inFlight.keys)") }
                     while let req = self.inFlight.popFirst() { req.value(nil, .frameDropped, nil) }
                 })
                 let durationMS = Int(sampleBuffer.duration.seconds * 1000.0)
@@ -474,7 +474,7 @@ class VideoDecoder: NSObject, MEVideoDecoder {
                     DispatchTime.now(),  // Don't set in the past if decode is not keeping up
                     baselineTime.advanced(by: .milliseconds(offsetMS))
                 )
-                timer.schedule(deadline: expected.advanced(by: .milliseconds(3 * durationMS)), leeway: .milliseconds(durationMS))
+                timer.schedule(deadline: expected.advanced(by: .milliseconds(5 * durationMS)), leeway: .milliseconds(durationMS))
                 timer.resume()
                 watchdog = timer
             }
@@ -585,7 +585,6 @@ class VideoDecoder: NSObject, MEVideoDecoder {
                     return completionHandler(nil, .frameDropped, nil)
                 } else if displayNextFrame {
                     // AVFoundation won't send any more input until the first non-discarded sampleBuffer after a seek produces output. So we have to return something.
-                    assert(inFlight.count == 1, "Unexpected pending requests after a seek: inFlight=\(inFlight.count)")
                     let completionHandler = inFlight.removeValue(forKey: sampleBuffer.presentationTimeStamp.value)!
                     do {
                         if TRACE_VIDEODECODER {
@@ -601,10 +600,18 @@ class VideoDecoder: NSObject, MEVideoDecoder {
                         }
                         let pixelBuffer = try manager.makePixelBuffer()
                         pixelBuffer.fillWithBlack()  // otherwise green which is very noticeable
-                        return completionHandler(pixelBuffer, .frameDropped, nil)
+                        completionHandler(pixelBuffer, .frameDropped, nil)
                     } catch {
-                        return completionHandler(nil, .frameDropped, MEError(.allocationFailure))
+                        completionHandler(nil, .frameDropped, MEError(.allocationFailure))
                     }
+                    // drop any other pending to prevent a stall and timeout
+                    while let req = self.inFlight.popFirst() {
+                        if TRACE_VIDEODECODER {
+                            logger.debug("VideoDecoder decodeFrame -> pts:\(req.key) discarded")
+                        }
+                        req.value(nil, .frameDropped, nil)
+                    }
+                    return
                 }
                 break
             }
