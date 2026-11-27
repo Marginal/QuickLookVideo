@@ -32,7 +32,28 @@ struct HEVCDecoderTests {
         #expect(preroll == Array(immediate.dropFirst()))
     }
 
-    private func decode(_ file: URL, bitDepth: Int, lowDelay: Bool, discardFirst: Bool = false) throws -> [Picture] {
+    @Test("Open-GOP HEVC starts correctly at a clean random-access picture")
+    func openGOPRandomAccess() throws {
+        let file = try #require(
+            Bundle(for: BundleMarker.self).url(forResource: "hev1-10-bit-open-gop", withExtension: "mp4", subdirectory: "fixtures")
+        )
+        let reordered = try decode(file, bitDepth: 10, lowDelay: false)
+        let immediate = try decode(file, bitDepth: 10, lowDelay: true)
+        try #require(reordered.count == 48)
+        #expect(immediate.sorted { $0.timestamp < $1.timestamp } == reordered)
+
+        // Frames 10 and 11 depend on pictures before the CRA at frame 12.
+        // Starting there should omit only those leading pictures and preserve every subsequent picture.
+        let afterSeek = try decode(
+            file, bitDepth: 10, lowDelay: true, seekToFrame: 12, leadingFrames: [10, 11]
+        )
+        #expect(afterSeek.sorted { $0.timestamp < $1.timestamp } == Array(reordered.dropFirst(12)))
+    }
+
+    private func decode(
+        _ file: URL, bitDepth: Int, lowDelay: Bool, discardFirst: Bool = false,
+        seekToFrame: Int64? = nil, leadingFrames: [Int64] = []
+    ) throws -> [Picture] {
         var input: UnsafeMutablePointer<AVFormatContext>?
         try #require(avformat_open_input(&input, file.path, nil, nil) == 0)
         defer { avformat_close_input(&input) }
@@ -57,6 +78,15 @@ struct HEVCDecoderTests {
             decoder.pointee.flags |= AV_CODEC_FLAG_LOW_DELAY
         }
         try #require(avcodec_open2(decoder, codec, nil) == 0)
+
+        let frameTimeBase = av_inv_q(stream.pointee.avg_frame_rate)
+        let streamTimeBase = stream.pointee.time_base
+        let seekTimestamp = seekToFrame.map { av_rescale_q($0, frameTimeBase, streamTimeBase) }
+        var leadingTimestamps = Set(leadingFrames.map { av_rescale_q($0, frameTimeBase, streamTimeBase) })
+        if let seekTimestamp {
+            try #require(av_seek_frame(input, index, seekTimestamp, AVSEEK_FLAG_BACKWARD) == 0)
+            avcodec_flush_buffers(decoder)
+        }
 
         var allocatedPacket = av_packet_alloc()
         defer { av_packet_free(&allocatedPacket) }
@@ -97,6 +127,10 @@ struct HEVCDecoderTests {
         while av_read_frame(input, packet) == 0 {
             defer { av_packet_unref(packet) }
             guard packet.pointee.stream_index == index else { continue }
+            if packetCount == 0, let seekTimestamp {
+                try #require(packet.pointee.pts == seekTimestamp)
+                try #require(packet.pointee.flags & AV_PKT_FLAG_KEY != 0)
+            }
             let discard = discardFirst && packetCount == 0
             packetCount += 1
             if discard {
@@ -106,15 +140,18 @@ struct HEVCDecoderTests {
             try #require(avcodec_send_packet(decoder, packet) == 0)
             try receive()
             if lowDelay {
-                try #require(pictures.count == before + (discard ? 0 : 1))
-                if !discard {
+                let needsReference = leadingTimestamps.remove(packet.pointee.pts) != nil
+                let hasOutput = !discard && !needsReference
+                try #require(pictures.count == before + (hasOutput ? 1 : 0))
+                if hasOutput {
                     #expect(pictures.last?.timestamp == packet.pointee.pts)
                 }
             }
         }
         try #require(avcodec_send_packet(decoder, nil) == 0)
         try receive()
-        #expect(pictures.count == packetCount - (discardFirst ? 1 : 0))
+        #expect(leadingTimestamps.isEmpty)
+        #expect(pictures.count == packetCount - leadingFrames.count - (discardFirst ? 1 : 0))
         return pictures
     }
 }
