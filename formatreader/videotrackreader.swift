@@ -166,30 +166,29 @@ class VideoTrackReader: TrackReader, METrackReader {
             // avc1 / MPEG-4 part 10
             // https://developer.apple.com/documentation/quicktime-file-format/avc_decoder_configuration_atom
             extract_extradata()  // build extradata if required info is in-band
-            if params.pointee.extradata_size >= 23 {
-                extensions[kCMFormatDescriptionExtension_SampleDescriptionExtensionAtoms] =
-                    [
-                        "avcC" as CFString: CFDataCreateWithBytesNoCopy(
-                            kCFAllocatorDefault,
-                            params.pointee.extradata,
-                            CFIndex(params.pointee.extradata_size),
-                            kCFAllocatorNull  // extradata will be deallocated by avformat_close_input()
-                        )
-                    ]
+            if params.pointee.extradata_size >= 23,
+                let desc = CFDataCreateWithBytesNoCopy(
+                    kCFAllocatorDefault,
+                    params.pointee.extradata,  // will be deep copied by CMVideoFormatDescriptionCreate
+                    CFIndex(params.pointee.extradata_size),
+                    kCFAllocatorNull  // extradata will be deallocated by avformat_close_input()
+                )
+            {
+                extensions[kCMFormatDescriptionExtension_SampleDescriptionExtensionAtoms] = ["avcC" as CFString: desc]
                 codecType = VTSupported(codecType: kCMVideoCodecType_H264, pixelFormat: AVPixelFormat(params.pointee.format))
             }
         case AV_CODEC_ID_HEVC:
             // MPEG-4 Part 15
             extract_extradata()  // build extradata if required info is in-band
-            if params.pointee.extradata_size >= 23 {
-                var atoms: [CFString: CFData] = [
-                    "hvcC" as CFString: CFDataCreateWithBytesNoCopy(
-                        kCFAllocatorDefault,
-                        params.pointee.extradata,
-                        CFIndex(params.pointee.extradata_size),
-                        kCFAllocatorNull  // extradata will be deallocated by avformat_close_input()
-                    )
-                ]
+            if params.pointee.extradata_size >= 23,
+                let desc = CFDataCreateWithBytesNoCopy(
+                    kCFAllocatorDefault,
+                    params.pointee.extradata,  // will be deep copied by CMVideoFormatDescriptionCreate
+                    CFIndex(params.pointee.extradata_size),
+                    kCFAllocatorNull  // extradata will be deallocated by avformat_close_input()
+                )
+            {
+                var atoms: [CFString: CFData] = ["hvcC" as CFString: desc]
                 if let dovi = DolbyVisionConfig(),
                     dovi.pointee.dv_profile == 5 || dovi.pointee.dv_profile == 8,
                     VTIsHardwareDecodeSupported(kCMVideoCodecType_DolbyVisionHEVC)
@@ -238,15 +237,15 @@ class VideoTrackReader: TrackReader, METrackReader {
         case AV_CODEC_ID_AV1:
             // https://aomediacodec.github.io/av1-isobmff/#av1codecconfigurationbox-section
             extract_extradata()  // build extradata if required info is in-band
-            if params.pointee.extradata_size > 4 {  // at least one OBU
-                var atoms: [CFString: CFData] = [
-                    "av1C" as CFString: CFDataCreateWithBytesNoCopy(
-                        kCFAllocatorDefault,
-                        params.pointee.extradata,
-                        CFIndex(params.pointee.extradata_size),
-                        kCFAllocatorNull  // extradata will be deallocated by avformat_close_input()
-                    )
-                ]
+            if params.pointee.extradata_size > 4,  // at least one OBU
+                let desc = CFDataCreateWithBytesNoCopy(
+                    kCFAllocatorDefault,
+                    params.pointee.extradata,  // will be deep copied by CMVideoFormatDescriptionCreate
+                    CFIndex(params.pointee.extradata_size),
+                    kCFAllocatorNull  // extradata will be deallocated by avformat_close_input()
+                )
+            {
+                var atoms: [CFString: CFData] = ["av1C" as CFString: desc]
                 #if false
                     // TODO: Re-enable AV1 hardware decode once I can test it on M3 or later
                     if let dovi = DolbyVisionConfig(),
