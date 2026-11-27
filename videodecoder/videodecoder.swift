@@ -28,8 +28,11 @@ struct CVReturnError: LocalizedError, CustomNSError {
 
 class VideoDecoder: NSObject, MEVideoDecoder {
 
-    // Supported fourCCs that might be sent to us by the CoreMedia demuxer i.e. seen in .asf, .avi or .mov files
+    private static let hev1CodecType: CMVideoCodecType = 0x6865_7631  // 'hev1'
+
+    // Supported fourCCs that might be sent to us by the CoreMedia demuxer.
     static let supported: [CMVideoCodecType: AVCodecID] = [
+        hev1CodecType: AV_CODEC_ID_HEVC,
         kCMVideoCodecType_Animation: AV_CODEC_ID_QTRLE,  // 'rle '
         0x7270_7a61: AV_CODEC_ID_RPZA,  // 'rpza'
         0x6963_6f64: AV_CODEC_ID_AIC,  // 'icod'
@@ -74,9 +77,9 @@ class VideoDecoder: NSObject, MEVideoDecoder {
     // properties
     var actualThreadCount: Int { return Int(dec_ctx?.pointee.thread_count ?? 0) }
     var contentHasInterframeDependencies: Bool {
-        let Bframes = dec_ctx?.pointee.has_b_frames ?? 0 > 0  // actually property of decoder rather than content
-        if TRACE_VIDEODECODER { logger.debug("VideoDecoder contentHasInterframeDependencies = \(Bframes)") }
-        return Bframes
+        let hasDependencies = codecType == Self.hev1CodecType || (dec_ctx?.pointee.has_b_frames ?? 0) > 0
+        if TRACE_VIDEODECODER { logger.debug("VideoDecoder contentHasInterframeDependencies = \(hasDependencies)") }
+        return hasDependencies
     }
     var isReadyForMoreMediaData = true  // Let the demuxer queue as much as it likes
 
@@ -174,7 +177,7 @@ class VideoDecoder: NSObject, MEVideoDecoder {
                 )
             }
         } else if let codecID = VideoDecoder.supported[codecType] {
-            // Didn't come from our formatreader, e.g. from .avi or .mov. Try to decode anyway.
+            // Came from a system format reader. Reconstruct FFmpeg's configuration.
             switch codecID {
 
             // RGB
@@ -193,6 +196,25 @@ class VideoDecoder: NSObject, MEVideoDecoder {
                 AV_CODEC_ID_NOTCHLC:
                 // Pixel format is set in codec _init() under avcodec_open2()
                 params.pointee.color_range = AVCOL_RANGE_MPEG  // will be overridden by some codecs e.g. notch
+            case AV_CODEC_ID_HEVC:
+                // MP4 samples contain length-prefixed NAL units. hvcC supplies the length
+                // size and any parameter sets stored outside the samples.
+                guard
+                    let atoms = formatDescription.extensions[kCMFormatDescriptionExtension_SampleDescriptionExtensionAtoms] as? [CFString: Data],
+                    let configuration = atoms["hvcC" as CFString],
+                    configuration.count >= 23,
+                    configuration.count <= Int(Int32.max - AV_INPUT_BUFFER_PADDING_SIZE)
+                else {
+                    throw MEError(.parsingFailure)
+                }
+                guard let bytes = av_mallocz(configuration.count + Int(AV_INPUT_BUFFER_PADDING_SIZE)) else {
+                    throw MEError(.allocationFailure)
+                }
+                let destination = bytes.assumingMemoryBound(to: UInt8.self)
+                configuration.copyBytes(to: destination, count: configuration.count)
+                params.pointee.extradata = destination
+                params.pointee.extradata_size = Int32(configuration.count)
+
             case AV_CODEC_ID_SVQ1, AV_CODEC_ID_SVQ3:
                 params.pointee.color_range = AVCOL_RANGE_MPEG  // For SVQ1. For SVQ3 svq3_decode_init() will override
                 // see FFmpeg svq3_decode_extradata()
@@ -345,6 +367,11 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             )
             throw MEError(.unsupportedFeature)
         }
+        if codecType == Self.hev1CodecType {
+            // VideoToolbox schedules presentation by timestamp. Its thumbnail requests
+            // can stop after a single picture, so don't delay output to reorder pictures.
+            dec_ctx!.pointee.flags |= AV_CODEC_FLAG_LOW_DELAY
+        }
         ret = avcodec_open2(dec_ctx, codec, nil)
         if ret < 0 {
             let error = AVERROR(errorCode: ret)
@@ -375,6 +402,10 @@ class VideoDecoder: NSObject, MEVideoDecoder {
 
     deinit {
         if dec_ctx != nil { avcodec_free_context(&dec_ctx) }
+        if codecType == Self.hev1CodecType {
+            var ownedParameters = Optional(params)
+            avcodec_parameters_free(&ownedParameters)
+        }
         if sws_ctx != nil { sws_freeContext(sws_ctx) }
         if sink_ctx != nil { avfilter_free(sink_ctx) }
         if src_ctx != nil { avfilter_free(src_ctx) }
@@ -410,8 +441,8 @@ class VideoDecoder: NSObject, MEVideoDecoder {
         options: MEDecodeFrameOptions,
         completionHandler: @escaping @Sendable (CVImageBuffer?, MEDecodeFrameStatus, (any Error)?) -> Void
     ) {
-        let attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false)! as NSArray
-        let attachment = attachments.firstObject as! NSDictionary
+        let attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false) as NSArray?
+        let attachment = attachments?.firstObject as? NSDictionary ?? [:]
 
         if TRACE_VIDEODECODER {
             let now = DispatchTime.now()
@@ -515,8 +546,8 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             let completionHandler = inFlight.removeValue(forKey: sampleBuffer.presentationTimeStamp.value)!
             return completionHandler(nil, .frameDropped, MEError(.invalidParameter))
         }
-        let attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false)! as NSArray
-        let attachment = attachments.firstObject as! NSDictionary
+        let attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false) as NSArray?
+        let attachment = attachments?.firstObject as? NSDictionary ?? [:]
 
         // Populate an AVPacket with the sample buffer's data
 
@@ -570,7 +601,7 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             return completionHandler(nil, .frameDropped, options.doNotOutputFrame ? nil : MEError(.parsingFailure))
         }
 
-        // Drain any frames the codec is ready to emit
+        let outputInDecodeOrder = codecType == Self.hev1CodecType
         var displayNextFrame = (attachment[kCMSampleAttachmentKey_DisplayImmediately] as? Bool) ?? false
         while true {
             var frame = av_frame_alloc()
@@ -584,9 +615,9 @@ class VideoDecoder: NSObject, MEVideoDecoder {
                             "VideoDecoder decodeFrame -> dts:\(sampleBuffer.decodeTimeStamp.value, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp.value, privacy: .public) discarded"
                         )
                     }
-                    let completionHandler = inFlight.removeValue(forKey: sampleBuffer.presentationTimeStamp.value)!
-                    return completionHandler(nil, .frameDropped, nil)
-                } else if displayNextFrame {
+                    inFlight.removeValue(forKey: sampleBuffer.presentationTimeStamp.value)?(nil, .frameDropped, nil)
+                    return
+                } else if displayNextFrame && !outputInDecodeOrder {
                     // AVFoundation won't send any more input until the first non-discarded sampleBuffer after a seek produces output. So we have to return something.
                     assert(inFlight.count == 1, "Unexpected pending requests after a seek: inFlight=\(inFlight.count)")
                     let completionHandler = inFlight.removeValue(forKey: sampleBuffer.presentationTimeStamp.value)!
@@ -624,13 +655,16 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             }
             displayNextFrame = false
 
-            // Complete this frame using the target PTS. best_effort_timestamp is more reliable than pts for older formats e.g. SVQ3 & XVID
-            guard let completionHandler = inFlight.removeValue(forKey: frame!.pointee.best_effort_timestamp) else {
+            // HEVC frames come back in decode order, so use the packet's PTS verbatim.
+            // best_effort_timestamp is more reliable for older formats such as SVQ3 and XVID.
+            let timestamp = outputInDecodeOrder ? frame!.pointee.pts : frame!.pointee.best_effort_timestamp
+            guard let completionHandler = inFlight.removeValue(forKey: timestamp) else {
                 // We don't expect to recieve a frame for which we haven't previously seen exacty one packet with matching PTS
                 logger.warning(
                     "VideoDecoder decodeFrame -> dts:\(frame!.pointee.pkt_dts) pts:\(frame!.pointee.pts) best:\(frame!.pointee.best_effort_timestamp) dropped"
                 )
-                break
+                av_frame_free(&frame)
+                continue
             }
             do {
                 let pixelBuffer = try convertFrame(&frame!)

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9B44156069D84E7D836B6B98 /* hevctests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B44156269D84E7D836B6B98 /* hevctests.swift */; };
+		9B44156169D84E7D836B6B98 /* fixtures in Resources */ = {isa = PBXBuildFile; fileRef = 9B44156369D84E7D836B6B98 /* fixtures */; };
 		AB004A142F2259900054D7B0 /* QLVideo Codecs.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = AB0049862F2143CE0054D7B0 /* QLVideo Codecs.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		AB09EA0A2F7B272000E23C51 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AB09EA092F7B272000E23C51 /* Localizable.xcstrings */; };
 		AB14D0F6309287E1009AACB2 /* QLVideo Formats.debug.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AB14D0F5309287E1009AACB2 /* QLVideo Formats.debug.dylib */; };
@@ -311,11 +313,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9B44156269D84E7D836B6B98 /* hevctests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = hevctests.swift; sourceTree = "<group>"; };
+		9B44156369D84E7D836B6B98 /* fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fixtures; sourceTree = "<group>"; };
+		9B44156469D84E7D836B6B98 /* tests-bridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "tests-bridge.h"; sourceTree = "<group>"; };
 		AB0049862F2143CE0054D7B0 /* QLVideo Codecs.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = "QLVideo Codecs.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB006A562F2978B20014937F /* libzimg.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libzimg.2.dylib; sourceTree = "<group>"; };
 		AB09EA062F7B21FA00E23C51 /* mul */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = mul; path = mul.lproj/Main.xcstrings; sourceTree = "<group>"; };
 		AB09EA092F7B272000E23C51 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
-		AB14D0F5309287E1009AACB2 /* QLVideo Formats.debug.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "QLVideo Formats.debug.dylib"; path = "Build/Products/Debug/QLVideo Formats.appex/Contents/MacOS/QLVideo Formats.debug.dylib"; sourceTree = SOURCE_ROOT; };
+		AB14D0F5309287E1009AACB2 /* QLVideo Formats.debug.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "QLVideo Formats.debug.dylib"; path = "QLVideo Formats.appex/Contents/MacOS/QLVideo Formats.debug.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB14D1053093D56F009AACB2 /* MockByteSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MockByteSource.h; sourceTree = "<group>"; };
 		AB14D1063093D56F009AACB2 /* MockByteSource.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MockByteSource.m; sourceTree = "<group>"; };
 		AB17AF8E3003AB20003767DB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -543,6 +548,9 @@
 			isa = PBXGroup;
 			children = (
 				AB31E722309271450001240F /* QuickLook Video Tests.xctestplan */,
+				9B44156369D84E7D836B6B98 /* fixtures */,
+				9B44156269D84E7D836B6B98 /* hevctests.swift */,
+				9B44156469D84E7D836B6B98 /* tests-bridge.h */,
 				AB38FD9F3092479F00EBDDEF /* tests.swift */,
 			);
 			path = tests;
@@ -1066,6 +1074,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B44156169D84E7D836B6B98 /* fixtures in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1200,6 +1209,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B44156069D84E7D836B6B98 /* hevctests.swift in Sources */,
 				AB31E70630925A440001240F /* tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1412,6 +1422,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "QLVideo tests";
 				PRODUCT_BUNDLE_IDENTIFIER = uk.org.marginal.qlvideo.tests;
 				PRODUCT_NAME = "QLVideo Tests";
+				SWIFT_OBJC_BRIDGING_HEADER = "tests/tests-bridge.h";
 			};
 			name = Debug;
 		};
@@ -1426,6 +1437,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "QLVideo tests";
 				PRODUCT_BUNDLE_IDENTIFIER = uk.org.marginal.qlvideo.tests;
 				PRODUCT_NAME = "QLVideo Tests";
+				SWIFT_OBJC_BRIDGING_HEADER = "tests/tests-bridge.h";
 			};
 			name = Release;
 		};
