@@ -38,13 +38,12 @@ class SnapShotter {
         var ret = avcodec_parameters_to_context(dec_ctx, stream.pointee.codecpar!)
         if ret < 0 { return nil }
 
-        if params.pointee.codec_id != AV_CODEC_ID_AV1 {  // dav1d effectively only supports frame slicing, and with a delay
-            dec_ctx!.pointee.thread_type = FF_THREAD_SLICE  // since (hopefully) we're only decoding one frame
-            var len = MemoryLayout.size(ofValue: dec_ctx!.pointee.thread_count)
-            // Get number of *performance* cores /usr/include/sys/sysctl.h
-            if sysctlbyname("hw.perflevel0.logicalcpu", &dec_ctx!.pointee.thread_count, &len, nil, 0) != 0 {
-                dec_ctx!.pointee.thread_count = 0  // auto
-            }
+        dec_ctx!.pointee.thread_type = FF_THREAD_SLICE  // Prefer slice threading to reduce delay
+        dec_ctx!.pointee.flags |= AV_CODEC_FLAG_LOW_DELAY  // AV1 & VC1 only support frame slicing so limit number of threads to limit delay
+        var len = MemoryLayout.size(ofValue: dec_ctx!.pointee.thread_count)
+        // Get number of *performance* cores /usr/include/sys/sysctl.h
+        if sysctlbyname("hw.perflevel0.logicalcpu", &dec_ctx!.pointee.thread_count, &len, nil, 0) != 0 {
+            dec_ctx!.pointee.thread_count = 0  // auto
         }
         ret = avcodec_open2(dec_ctx, codec, nil)
         if ret < 0 { return nil }
