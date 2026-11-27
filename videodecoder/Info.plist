@@ -32,7 +32,13 @@
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 		<key>CodecInfo</key>
 		<array>
-			<!-- codecs found in .mov, .avi and/or .asf files which formatreader doesn't see -->
+			<!-- codecs found in .mp4, .mov, .avi and/or .asf files which formatreader doesn't see -->
+			<dict>
+				<key>CodecName</key>
+				<string>HEVC (hev1)</string>
+				<key>CodecType</key>
+				<string>hev1</string>
+			</dict>
 			<dict>
 				<key>CodecName</key>
 				<string>QuickTime Animation</string>

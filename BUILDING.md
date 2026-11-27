@@ -28,6 +28,16 @@ The Xcode project `QLVideo.xcodeproj` builds the following Products:
 * dav1d - Support for the [AV1](https://en.wikipedia.org/wiki/AV1) codec. ffmpeg depends on this.
 * zimg - Support for format and HDR colour conversion. ffmpeg depends on this.
 
+Tests
+-----
+Use the `QLVideo Tests` scheme to run the test plan. The format reader test uses files in the directory
+specified by `TESTDIR` in the test plan. The HEVC tests bundle synthetic MP4 fixtures and can run on
+their own.
+
+```sh
+xcodebuild test -scheme 'QLVideo Tests' -only-testing:tests/HEVCDecoderTests
+```
+
 Debugging
 ---------
 All executables produce output in the system log. Use the filter `subsystem:uk.org.marginal.qlvideo` in the

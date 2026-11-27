@@ -1,0 +1,16 @@
+--- libavcodec/hevc/hevcdec.c
++++ libavcodec/hevc/hevcdec.c
+@@ -3575,8 +3575,12 @@
+
+     s->cur_frame->f->pict_type = 3 - s->sh.slice_type;
+
++    /* Low-delay callers schedule pictures themselves using each packet's PTS.
++     * The DPB still retains reference pictures for subsequent decoding. */
++    const unsigned max_reorder = s->avctx->flags & AV_CODEC_FLAG_LOW_DELAY
++                                 ? 0 : sps->temporal_layer[sps->max_sub_layers - 1].num_reorder_pics;
+     ret = ff_hevc_output_frames(s, s->layers_active_decode, s->layers_active_output,
+-                                sps->temporal_layer[sps->max_sub_layers - 1].num_reorder_pics,
++                                max_reorder,
+                                 sps->temporal_layer[sps->max_sub_layers - 1].max_dec_pic_buffering, 0);
+     if (ret < 0)
+         goto fail;
