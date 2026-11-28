@@ -64,6 +64,10 @@ class VideoDecoder: NSObject, MEVideoDecoder {
         0x4449_5634: AV_CODEC_ID_MSMPEG4V3,  // 'DIV4'
         0x4449_5635: AV_CODEC_ID_MSMPEG4V3,  // 'DIV5'
         0x4449_5636: AV_CODEC_ID_MSMPEG4V3,  // 'DIV6'
+        0x6176_6333: AV_CODEC_ID_H264,  // 'avc3'
+        // 'dva1'/'dvav' Dolby Vision Profile 9 for avc1/avc3. But can't find any samples to test.
+        0x6865_7631: AV_CODEC_ID_HEVC,  // 'hev1'
+        0x6476_6865: AV_CODEC_ID_HEVC,  // 'dvhe' Dolby Vision Profile 5, 7, 8 or 20
     ]
 
     let codecType: CMVideoCodecType
@@ -174,7 +178,7 @@ class VideoDecoder: NSObject, MEVideoDecoder {
                 )
             }
         } else if let codecID = VideoDecoder.supported[codecType] {
-            // Didn't come from our formatreader, e.g. from .avi or .mov. Try to decode anyway.
+            // Came from a macOS demuxer, not from our formatreader. e.g. from .avi, .mov or .mp4. Try to decode anyway.
             switch codecID {
 
             // RGB
@@ -253,6 +257,52 @@ class VideoDecoder: NSObject, MEVideoDecoder {
                             _ = memcpy(params.pointee.extradata, src.baseAddress!, dsi.count)
                         }
                     }
+                }
+            case AV_CODEC_ID_H264, AV_CODEC_ID_HEVC:
+                // H.264 or HEVC with or without Dolby Vision, but if we got here then without SPS/PPS
+                let atom = codecID == AV_CODEC_ID_H264 ? "avcC" as CFString : "hvcC" as CFString
+                guard
+                    let sampleDesc = formatDescription.extensions[kCMFormatDescriptionExtension_SampleDescriptionExtensionAtoms]
+                        as? [CFString: Data],
+                    let desc = sampleDesc[atom]
+                else {
+                    throw MEError(.invalidParameter)  // FFmpeg won't be able to decode so better to fail now
+                }
+                params.pointee.extradata_size = Int32(desc.count)
+                let extraData = av_mallocz(Int(params.pointee.extradata_size + AV_INPUT_BUFFER_PADDING_SIZE))!
+                params.pointee.extradata = extraData.assumingMemoryBound(to: UInt8.self)
+                desc.copyBytes(to: params.pointee.extradata, count: desc.count)
+
+                // Dolby Vision. See ff_isom_parse_dvcc_dvvc(). CoreVideo doesn't support setting DV (or HDR10+) metadata
+                // on CVPixelBuffers so we don't actually do anything in decodeFrame() with the per-frame metadata
+                var dovi_size = 0
+                if let doviDesc = sampleDesc["dvcC" as CFString] ?? sampleDesc["dvvC" as CFString],
+                    doviDesc.count >= 4,
+                    let dovi = av_dovi_alloc(&dovi_size)
+                {
+                    dovi.pointee.dv_version_major = doviDesc.bytes[0]
+                    dovi.pointee.dv_version_minor = doviDesc.bytes[1]
+                    let buf: UInt32 = (UInt32(doviDesc.bytes[2]) << 8) + UInt32(doviDesc.bytes[3])
+                    dovi.pointee.dv_profile = UInt8((buf >> 9) & 0x7f)  // 7 bits
+                    dovi.pointee.dv_level = UInt8((buf >> 3) & 0x3f)  // 6 bits
+                    dovi.pointee.rpu_present_flag = UInt8((buf >> 2) & 0x01)  // 1 bit
+                    dovi.pointee.el_present_flag = UInt8((buf >> 1) & 0x01)  // 1 bit
+                    dovi.pointee.bl_present_flag = UInt8(buf & 0x01)  // 1 bit
+                    if doviDesc.count >= 5 {
+                        dovi.pointee.dv_bl_signal_compatibility_id = (doviDesc.bytes[4] >> 4) & 0x0f  // 4 bits
+                        dovi.pointee.dv_md_compression = (doviDesc.bytes[4] >> 2) & 0x03  // 2 bits
+                    } else {
+                        dovi.pointee.dv_bl_signal_compatibility_id = 0
+                        dovi.pointee.dv_md_compression = 0
+                    }
+                    av_packet_side_data_add(
+                        &params.pointee.coded_side_data,
+                        &params.pointee.nb_coded_side_data,
+                        AV_PKT_DATA_DOVI_CONF,
+                        dovi,
+                        dovi_size,
+                        0
+                    )
                 }
 
             default:
@@ -407,12 +457,11 @@ class VideoDecoder: NSObject, MEVideoDecoder {
         options: MEDecodeFrameOptions,
         completionHandler: @escaping @Sendable (CVImageBuffer?, MEDecodeFrameStatus, (any Error)?) -> Void
     ) {
-        let attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false)! as NSArray
-        let attachment = attachments.firstObject as! NSDictionary
-
         if TRACE_VIDEODECODER {
             let now = DispatchTime.now()
             let delay: UInt64 = (now.uptimeNanoseconds - lastPacketTime.uptimeNanoseconds) / 1_000_000
+            let attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false) as NSArray?
+            let attachment = attachments?.firstObject as? NSDictionary ?? [:]
             logger.debug(
                 "VideoDecoder decodeFrame <- dts:\(sampleBuffer.decodeTimeStamp, privacy: .public) pts:\(sampleBuffer.presentationTimeStamp, privacy: .public) dur:\(sampleBuffer.duration, privacy: .public) index:\(attachment["QLVideoIndex" as CFString] as? Int64 ?? -1) flags:\((attachment[kCMSampleAttachmentKey_NotSync] as? Bool) ?? false ? "_" : "K", privacy: .public)\(options.doNotOutputFrame ? "D" : "_", privacy: .public)_ \(sampleBuffer.attachments[.resetDecoderBeforeDecoding]?.value as? Bool ?? false ? "Reset" : "", privacy: .public) \((sampleBuffer.attachments[.resumeOutput]?.value as? Int ?? 0 > 0) ? "Resume" : "", privacy: .public) \(sampleBuffer.attachments[.drainAfterDecoding]?.value as? Bool ?? false ? "Drain" : "", privacy: .public) \((attachment[kCMSampleAttachmentKey_DisplayImmediately] as? Bool) ?? false ? "Immediate" : "", privacy: .public) \((attachment[kCMSampleAttachmentKey_DoNotDisplay] as? Bool) ?? false ? "DoNotDisplay" : "", privacy: .public) \(delay)ms"
             )
@@ -512,12 +561,16 @@ class VideoDecoder: NSObject, MEVideoDecoder {
             let completionHandler = inFlight.removeValue(forKey: sampleBuffer.presentationTimeStamp.value)!
             return completionHandler(nil, .frameDropped, MEError(.invalidParameter))
         }
-        let attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false)! as NSArray
-        let attachment = attachments.firstObject as! NSDictionary
+        let attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false) as NSArray?
+        let attachment = attachments?.firstObject as? NSDictionary ?? [:]
 
         // Populate an AVPacket with the sample buffer's data
 
         var pkt = av_packet_alloc()
+        guard pkt != nil else {
+            let completionHandler = inFlight.removeValue(forKey: sampleBuffer.presentationTimeStamp.value)!
+            return completionHandler(nil, .frameDropped, MEError(.allocationFailure))
+        }
         pkt!.pointee.data = UnsafeMutableRawPointer(data!).assumingMemoryBound(to: UInt8.self)
         pkt!.pointee.size = Int32(totalLength)
         pkt!.pointee.time_base = AVRational(num: 1, den: Int32(sampleBuffer.decodeTimeStamp.timescale))

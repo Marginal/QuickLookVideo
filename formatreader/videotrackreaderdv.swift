@@ -101,7 +101,7 @@ extension VideoTrackReader {
                 (dovi.dv_bl_signal_compatibility_id << 4) | (dovi.dv_md_compression << 2),
             ] + Array(repeating: 0, count: 19)
         return (
-            (dovi.dv_profile > 10 ? "dvwC" : (dovi.dv_profile > 7 ? "dvvC" : "dvcC")) as CFString,
+            (dovi.dv_profile > 10 ? "dvcC" : (dovi.dv_profile > 7 ? "dvvC" : "dvcC")) as CFString,
             CFDataCreate(kCFAllocatorDefault, bytes, CFIndex(bytes.count))
         )
     }

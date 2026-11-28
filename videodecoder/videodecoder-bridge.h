@@ -19,6 +19,7 @@
 
 // FFmpeg internals
 #include <libavutil/pixdesc.h>
+#include <libavutil/dovi_meta.h>
 
 // this project
 #include "callbacks.h"

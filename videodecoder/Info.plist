@@ -238,6 +238,26 @@
 				<string>DIV6</string>
 			</dict>
 
+			<!-- codecs found in .mp4 files which formatreader doesn't see -->
+			<dict>
+				<key>CodecName</key>
+				<string>H.264 (Parameter Sets in Bitstream)</string>
+				<key>CodecType</key>
+				<string>avc3</string>
+			</dict>
+			<dict>
+				<key>CodecName</key>
+				<string>HEVC (Parameter Sets in Bitstream)</string>
+				<key>CodecType</key>
+				<string>hev1</string>
+			</dict>
+			<dict>
+				<key>CodecName</key>
+				<string>Dolby Vision HEVC (Parameter Sets in Bitstream)</string>
+				<key>CodecType</key>
+				<string>dvhe</string>
+			</dict>
+
 			<!-- made-up fourCCs set by formatreader to bypass CoreVideo -->
 			<dict>
 				<key>CodecName</key>
